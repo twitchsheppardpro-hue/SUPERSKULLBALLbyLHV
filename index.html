@@ -1,158 +1,187 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Tournoi — Classement</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Tournoi — Classement, Live, Terminés & Phases finales (V7.4 - JSON)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet"/>
 <style>
   :root{
-    --bg:#0f141b;
-    --panel:#121a22;
-    --panel2:#0f1922;
-    --muted:#9fb2c8;
-    --text:#dbe7f4;
-    --accent:#60a5fa;
-    --chip:#1e293b;
-    --line:#1b2430;
+    --bg:#0e0f13;
+    --panel:#161923;
+    --panel-2:#1f2430;
+    --text:#e9ecf1;
+    --muted:#a7b0c0;
+    --accent:#ff5f00;
+    --good:#2ecc71;
+    --bad:#e74c3c;
+    --warn:#f1c40f;
+    --row:#121520;
+    --shadow: 0 8px 24px rgba(0,0,0,.35);
+    --radius: 16px;
+    --header-grad: linear-gradient(90deg,rgba(255,95,0,.15),rgba(255,95,0,.05) 35%, transparent);
+    --bg-grad: linear-gradient(135deg,#0b0c10,#151824 55%, #10131c);
+    --panel-grad: linear-gradient(180deg,#171b26,#121520);
   }
   *{box-sizing:border-box}
-  html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
-  a{color:inherit;text-decoration:none}
-  .wrap{max-width:1280px;margin:0 auto;padding:24px}
-  .tabs{display:flex;gap:12px;margin:8px 0 20px}
-  .tab{padding:10px 16px;border-radius:10px;background:var(--panel2);border:1px solid var(--line);color:#cfe2ff}
-  .tab.active{background:#17212b;border-color:#223142}
-  .hero{display:flex;align-items:center;gap:16px;background:linear-gradient(180deg,#0f1922,#121a22);border:1px solid var(--line);padding:20px;border-radius:16px}
-  .hero img{width:96px;height:96px;object-fit:contain;background:#0b1117;border-radius:12px;border:1px solid #1d2731}
-  .title{font-size:28px;font-weight:800;letter-spacing:.4px}
+  html,body{height:100%}
+  body{margin:0;background:var(--bg-grad);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial,sans-serif;}
+  header{position:sticky;top:0;z-index:50;background:var(--header-grad);backdrop-filter: blur(6px);border-bottom:1px solid #242a37;}
+  .wrap{max-width:1400px;margin:0 auto;padding:18px 20px}
+  .tabs{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .tab{padding:12px 16px;border-radius:12px;background:var(--panel);border:1px solid #232839;color:var(--text);cursor:pointer;transition:.2s;font-weight:800;font-size:15px}
+  .tab[aria-selected="true"], .tab:hover{background:linear-gradient(135deg,#1c2230 0%, #161b27 70%);border-color:#2b3347;box-shadow:var(--shadow)}
+  .grow{flex:1}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:12px;background:#1f2430;border:1px solid #2b3344;color:var(--text);cursor:pointer;font-weight:700}
+  .panel{background:var(--panel-grad);border:1px solid #23293a;border-radius:var(--radius);box-shadow:var(--shadow)}
+  .hero{padding:22px;border-radius:var(--radius);background:var(--panel-grad);border:1px solid #242b3c;display:flex;align-items:center;gap:18px}
+  .hero img{width:110px;height:110px;object-fit:contain;background:#0d0f14;border-radius:14px;border:1px solid #2a3245}
+  .hero h1{margin:0;font-size:34px}
+  .hero .sub{opacity:.7;font-weight:600;margin-left:6px}
+  .right{margin-left:auto}
+  /* Classement */
+  .rank-table{width:100%;border-collapse:separate;border-spacing:0 10px}
+  .rank-table thead th{font-size:13px;font-weight:700;color:#aeb6c5;text-transform:uppercase;letter-spacing:.04em;padding:0 12px 4px}
+  .rank-table tbody tr{background:linear-gradient(180deg,#171b26,#131722);border:1px solid #242b3a}
+  .rank-table tbody td{padding:14px 12px;vertical-align:middle}
+  .rank-table tbody td:first-child{border-radius:12px 0 0 12px}
+  .rank-table tbody td:last-child{border-radius:0 12px 12px 0}
+  .rank{width:48px;text-align:center;font-weight:800}
+  .logo img{width:44px;height:44px;border-radius:10px;border:1px solid #2a3245;background:#0d0f14;object-fit:contain}
+  .team{font-weight:800;font-size:18px;white-space:nowrap}
+  .pts{font-weight:900}
+  /* supprime l'ombre dupliquée du nom */
+  .team::after{content:none !important}
+  /* Grille équipes (lecture seule) */
+  .grid{display:grid;gap:14px}
+  @media(min-width:800px){ .grid.cols-4{grid-template-columns:repeat(4,1fr)} }
+  .team-card{background:linear-gradient(180deg,#181c29,#121724);border:1px solid #232a3b;border-radius:14px;padding:12px}
+  .team-card .t{display:flex;gap:10px;align-items:center}
+  .team-card img{width:40px;height:40px;border-radius:10px;border:1px solid #2a3245;background:#0d0f14;object-fit:contain}
   .muted{color:var(--muted);font-size:13px}
-  .panel{margin-top:18px;background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}
-  .panel h2{margin:0;padding:16px 18px;border-bottom:1px solid var(--line);font-size:18px}
-  table{width:100%;border-collapse:collapse}
-  thead th{font-weight:600;color:#c9d7e5;background:#111923;border-bottom:1px solid var(--line);padding:12px 10px;text-align:center}
-  thead th:first-child{text-align:left;padding-left:18px}
-  tbody td{padding:12px 10px;border-bottom:1px solid #151f2b;text-align:center}
-  tbody td:first-child{text-align:left;padding-left:18px;display:flex;align-items:center;gap:10px}
-  .logo{width:36px;height:36px;border-radius:8px;background:#0b1117;border:1px solid #1d2731;object-fit:contain}
-  .rank{width:36px;text-align:center;opacity:.9}
-  .team{font-weight:700;letter-spacing:.2px}
-  .btn{background:#132033;border:1px solid #213043;padding:8px 12px;border-radius:10px;color:#cfe2ff;font-weight:600;font-size:13px}
-  .topbar{display:flex;justify-content:space-between;align-items:center}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="tabs">
-    <div class="tab active">Classement</div>
-    <div class="tab">Phase finale</div>
-    <div class="tab">Matchs en direct</div>
-    <div class="tab">Matchs terminés</div>
-    <div class="tab">Gestion</div>
-  </div>
+  <header>
+    <div class="wrap">
+      <nav class="tabs">
+        <button class="tab" aria-selected="true">Classement</button>
+        <button class="tab" disabled>Phase finale</button>
+        <button class="tab" disabled>Matchs en direct</button>
+        <button class="tab" disabled>Matchs terminés</button>
+        <div class="grow"></div>
+        <button id="reload" class="btn">Recharger (no‑cache)</button>
+      </nav>
+    </div>
+  </header>
 
-  <div class="hero">
-    <img id="eventLogo" alt="logo">
-    <div>
-      <div class="title" id="leagueName">Ma Ligue</div>
-      <div class="muted">Chargé depuis <code>data/teams.json</code> — affichage public</div>
-    </div>
-    <div style="margin-left:auto">
-      <button class="btn" id="refresh">Recharger (no‑cache)</button>
-    </div>
-  </div>
+  <main class="wrap" style="display:grid;gap:20px;margin-top:20px">
+    <section class="hero panel">
+      <img id="leagueLogo" alt="league" src="" />
+      <div>
+        <h1 id="leagueName">Ma Ligue</h1>
+        <div class="sub">Chargé depuis <code>data/teams.json</code></div>
+      </div>
+      <div class="right muted" id="status"></div>
+    </section>
 
-  <div class="panel" id="classementPanel">
-    <h2>Classement</h2>
-    <div style="overflow:auto">
-      <table id="tableau">
-        <thead>
-          <tr>
-            <th style="width:46px">#</th>
-            <th style="text-align:left">Équipe</th>
-            <th>J</th><th>G</th><th>N</th><th>P</th>
-            <th>BP</th><th>BC</th><th>Diff</th>
-            <th>BO</th><th>BD</th><th>Pts</th>
-          </tr>
-        </thead>
-        <tbody id="rows"></tbody>
-      </table>
-    </div>
-  </div>
-</div>
+    <section class="panel" style="padding:18px">
+      <h2 style="margin:0 0 12px">Classement</h2>
+      <div class="muted" style="margin:-6px 0 8px">Tri alphabétique (démo – pas de points tant qu'il n'y a pas de matchs).</div>
+      <div style="overflow:auto">
+        <table class="rank-table" id="table">
+          <thead>
+            <tr>
+              <th class="rank">#</th>
+              <th class="logo">Logo</th>
+              <th class="team">Équipe</th>
+              <th>J</th><th>G</th><th>N</th><th>P</th><th>BP</th><th>BC</th><th>Diff</th><th>BO</th><th>BD</th><th class="pts">Pts</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel" style="padding:18px">
+      <h3 style="margin:0 0 12px">Équipes (lecture seule)</h3>
+      <div class="grid cols-4" id="teamsGrid"></div>
+    </section>
+  </main>
 
 <script>
-(function(){
-  const cacheBust = () => 'cb=' + Math.random().toString(36).slice(2);
-  const rows = document.getElementById('rows');
-  const eventLogo = document.getElementById('eventLogo');
-  const leagueName = document.getElementById('leagueName');
-  const refreshBtn = document.getElementById('refresh');
+  const TEAMS_URL = "data/teams.json";
 
-  function safeUrl(u){ if(!u) return ''; return u + (u.includes('?')?'&':'?') + cacheBust(); }
-
-  async function load() {
-    rows.innerHTML = '<tr><td colspan="12" style="padding:18px;text-align:center;color:#9fb2c8">Chargement…</td></tr>';
-    try{
-      const res = await fetch('data/teams.json?'+cacheBust(), {cache:'no-store'});
-      const data = await res.json();
-      leagueName.textContent = data.leagueName || 'Ma Ligue';
-      eventLogo.src = safeUrl(data.eventLogo);
-      eventLogo.alt = 'logo';
-      renderTeams((data.teams||[]));
-    }catch(e){
-      console.error(e);
-      rows.innerHTML = '<tr><td colspan="12" style="padding:18px;text-align:center;color:#ffaeae">Erreur de chargement des équipes</td></tr>';
-    }
+  async function fetchNoCache(url){
+    const u = new URL(url, location.href);
+    u.searchParams.set("_ts", Date.now());
+    const res = await fetch(u.toString(), { cache: "no-store" });
+    if(!res.ok) throw new Error("HTTP " + res.status);
+    return res.json();
   }
 
-  function renderTeams(list){
-    // ordre: par id croissant (ça se rapproche de votre ancien affichage)
-    list = (list||[]).slice().sort((a,b)=> (a.id||0)-(b.id||0));
-    rows.innerHTML = '';
-    list.forEach((t,idx)=>{
-      const tr = document.createElement('tr');
-      const logo = document.createElement('img');
-      logo.className = 'logo';
-      logo.src = safeUrl(t.logo);
-      logo.alt = t.name || 'logo';
+  function el(tag, attrs={}, html=""){
+    const d = document.createElement(tag);
+    for(const [k,v] of Object.entries(attrs)) d.setAttribute(k,v);
+    if(html) d.innerHTML = html;
+    return d;
+  }
 
-      const tdRank = document.createElement('td');
-      tdRank.className = 'rank';
-      tdRank.textContent = String(idx+1);
+  function render(league){
+    // header
+    document.getElementById("leagueName").textContent = league.leagueName || "Ma Ligue";
+    const logo = document.getElementById("leagueLogo");
+    logo.src = league.eventLogo ? league.eventLogo : "";
+    logo.style.visibility = league.eventLogo ? "visible":"hidden";
 
-      const tdTeam = document.createElement('td');
-      tdTeam.style.textAlign='left';
-      tdTeam.style.display='flex'; tdTeam.style.alignItems='center'; tdTeam.style.gap='10px';
-      const name = document.createElement('span'); name.className='team'; name.textContent = t.name||('equipe'+(idx+1));
-      tdTeam.appendChild(logo); tdTeam.appendChild(name);
+    // classement (démo : tri A->Z, stats à 0)
+    const body = document.getElementById("tbody");
+    body.innerHTML = "";
+    const teams = (league.teams||[]).slice().sort((a,b)=>a.name.localeCompare(b.name));
+    teams.forEach((t, i) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td class="rank">${i+1}</td>
+        <td class="logo">${t.logo?`<img src="${t.logo}" alt="">`:""}</td>
+        <td class="team">${t.name}</td>
+        <td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+        <td class="pts">0</td>`;
+      body.appendChild(tr);
+    });
 
-      function td(v){ const el = document.createElement('td'); el.textContent = v; return el; }
-
-      tr.appendChild(tdRank);
-      tr.appendChild(tdTeam);
-      // J,G,N,P,BP,BC,Diff,BO,BD,Pts -> par défaut 0 tant qu'il n'y a pas d'historique de matchs
-      tr.appendChild(td(0)); tr.appendChild(td(0)); tr.appendChild(td(0)); tr.appendChild(td(0));
-      tr.appendChild(td(0)); tr.appendChild(td(0)); tr.appendChild(td(0));
-      tr.appendChild(td(0)); tr.appendChild(td(0)); tr.appendChild(td(0));
-
-      rows.appendChild(tr);
+    // grille équipes
+    const grid = document.getElementById("teamsGrid");
+    grid.innerHTML = "";
+    teams.forEach(t => {
+      const card = el("div", {class:"team-card"});
+      card.innerHTML = `
+        <div class="t">
+          ${t.logo?`<img src="${t.logo}" alt="">`:""}
+          <div>
+            <div style="font-weight:800">${t.name}</div>
+            <div class="muted">${t.color ? t.color : ""}</div>
+          </div>
+        </div>`;
+      grid.appendChild(card);
     });
   }
 
-  refreshBtn.addEventListener('click', load);
-
-  // Désenregistrement SW résiduels
-  if('serviceWorker' in navigator){
-    navigator.serviceWorker.getRegistrations?.().then(list=>{
-      list.forEach(r=>r.unregister());
-    }).catch(()=>{});
+  async function load(){
+    const status = document.getElementById("status");
+    try{
+      status.textContent = "Chargement…";
+      const data = await fetchNoCache(TEAMS_URL);
+      render(data);
+      status.textContent = "OK";
+    }catch(e){
+      console.error(e);
+      status.textContent = "Erreur de chargement";
+      alert("Impossible de charger data/teams.json (" + e.message + ").");
+    }
   }
 
+  document.getElementById("reload").addEventListener("click", load);
   load();
-})();
 </script>
 </body>
 </html>
