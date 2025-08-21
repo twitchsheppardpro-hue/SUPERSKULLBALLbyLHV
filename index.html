@@ -3538,5 +3538,59 @@ window.addEventListener("DOMContentLoaded", ()=>{
 });
 </script>
 
+
+<!-- V7.6 cleanup: remove local roster editors (Equipes / Effectifs / Joueurs) -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  try {
+    const killWords = ['équipe', 'équipes', 'effectif', 'effectifs', 'joueur', 'joueurs'];
+    const isKill = (txt) => {
+      const t = (txt || '').toLowerCase().trim();
+      return killWords.some(k => t.includes(k));
+    };
+    const headings = Array.from(document.querySelectorAll('h1,h2,h3,h4'));
+    const removed = [];
+    headings.forEach(h => {
+      if (!isKill(h.textContent)) return;
+      let panel = h.closest('.panel, .card, .box, .block, section, .container');
+      if (!panel) panel = h.parentElement;
+      if (!panel) return;
+      const hasInputs = panel.querySelector('input,select,textarea,button');
+      if (hasInputs) {
+        panel.remove();
+        removed.push(h.textContent.trim());
+      }
+    });
+    const fallbackSelectors = [
+      '#teams-editor', '#players-editor', '#effectifs', '#equipes-editor',
+      '[data-panel="teams"]', '[data-panel="players"]'
+    ];
+    fallbackSelectors.forEach(sel => {
+      document.querySelectorAll(sel).forEach(el => el.remove());
+    });
+    document.body.setAttribute('data-roster-source', 'github-json');
+    const badge = document.createElement('div');
+    badge.textContent = 'Rosters chargés depuis GitHub (lecture seule)';
+    Object.assign(badge.style, {
+      position: 'fixed',
+      bottom: '12px',
+      right: '12px',
+      background: 'rgba(0,0,0,0.6)',
+      color: '#fff',
+      padding: '8px 12px',
+      fontSize: '12px',
+      borderRadius: '10px',
+      zIndex: 9999,
+      backdropFilter: 'blur(2px)',
+      boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
+    });
+    document.body.appendChild(badge);
+    setTimeout(() => { badge.remove(); }, 8000);
+    console.log('[V7.6] Cleanup done. Removed panels:', removed);
+  } catch (e) {
+    console.warn('V7.6 cleanup script error:', e);
+  }
+});
+</script>
 </body>
 </html>
