@@ -355,6 +355,26 @@ html.readonly .footer .sub { display: none !important; }
 .goal-controls-split .mini{ padding:6px 10px; }
 </style>
 
+
+<style>
+/* --- Hide the ghost/duplicate team name in standings rows --- */
+#classement .team-name::after,
+#classement .team-cell::after,
+#classement .bg-team-name,
+#classement .team-bg,
+.table-standings .team-name::after,
+.table-standings .team::after {
+  content: none !important;
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+/* Safety: if a span is injected for background label */
+#classement .team-name .bg-team-name {
+  display: none !important;
+}
+</style>
 </head>
 <body>
 <header>
@@ -1513,50 +1533,7 @@ document.getElementById('applyPalette').addEventListener('click',()=>{
     renderFinished();
     applyPublicMode();
   }
-  
-(async()=>{
-  const qs = new URLSearchParams(location.search);
-  const forcedUrl = qs.get('json');
-  const url = forcedUrl || 'data/teams.json';
-  try{
-    const res = await fetch(url, {cache:'no-store'});
-    if(res.ok){
-      const data = await res.json();
-      if(data.leagueName) state.league.name = data.leagueName;
-      if(data.eventLogo) state.league.logo = data.eventLogo;
-      if(Array.isArray(data.teams)){
-        const newTeams = [];
-        const newPlayers = [];
-        for(let i=0;i<data.teams.length;i++){
-          const t = data.teams[i]||{};
-          const teamId = uid();
-          newTeams.push({
-            id: teamId,
-            name: t.name || `equipe${i+1}`,
-            short: (t.short || (t.name? t.name.slice(0,3): `E${i+1}`)).toUpperCase(),
-            color: t.color || '#202532',
-            logo: t.logo || ''
-          });
-          if(Array.isArray(t.players)){
-            for(const p of t.players){
-              if(p && typeof p==='string'){
-                newPlayers.push({ id: uid(), team: teamId, name: p });
-              }
-            }
-          }
-        }
-        if(newTeams.length){ state.teams = newTeams; }
-        if(newPlayers.length){ state.players = newPlayers; }
-      }
-    } else {
-      console.warn('teams.json not found or not public', url, res.status);
-    }
-  }catch(err){
-    console.warn('teams.json load failed', err);
-  }
   bootstrap();
-})();
-
 </script>
 <script>
 // Safe UI masking: hide unwanted controls without breaking JS that references them
