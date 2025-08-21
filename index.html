@@ -1,187 +1,178 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Tournoi — Classement, Live, Terminés & Phases finales (V7.4 - JSON)</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tournoi — Classement (runtime GitHub)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg:#0e0f13;
-    --panel:#161923;
-    --panel-2:#1f2430;
-    --text:#e9ecf1;
-    --muted:#a7b0c0;
-    --accent:#ff5f00;
-    --good:#2ecc71;
-    --bad:#e74c3c;
-    --warn:#f1c40f;
-    --row:#121520;
-    --shadow: 0 8px 24px rgba(0,0,0,.35);
-    --radius: 16px;
-    --header-grad: linear-gradient(90deg,rgba(255,95,0,.15),rgba(255,95,0,.05) 35%, transparent);
-    --bg-grad: linear-gradient(135deg,#0b0c10,#151824 55%, #10131c);
-    --panel-grad: linear-gradient(180deg,#171b26,#121520);
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  body{margin:0;background:var(--bg-grad);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial,sans-serif;}
-  header{position:sticky;top:0;z-index:50;background:var(--header-grad);backdrop-filter: blur(6px);border-bottom:1px solid #242a37;}
-  .wrap{max-width:1400px;margin:0 auto;padding:18px 20px}
-  .tabs{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-  .tab{padding:12px 16px;border-radius:12px;background:var(--panel);border:1px solid #232839;color:var(--text);cursor:pointer;transition:.2s;font-weight:800;font-size:15px}
-  .tab[aria-selected="true"], .tab:hover{background:linear-gradient(135deg,#1c2230 0%, #161b27 70%);border-color:#2b3347;box-shadow:var(--shadow)}
-  .grow{flex:1}
-  .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:12px;background:#1f2430;border:1px solid #2b3344;color:var(--text);cursor:pointer;font-weight:700}
-  .panel{background:var(--panel-grad);border:1px solid #23293a;border-radius:var(--radius);box-shadow:var(--shadow)}
-  .hero{padding:22px;border-radius:var(--radius);background:var(--panel-grad);border:1px solid #242b3c;display:flex;align-items:center;gap:18px}
-  .hero img{width:110px;height:110px;object-fit:contain;background:#0d0f14;border-radius:14px;border:1px solid #2a3245}
-  .hero h1{margin:0;font-size:34px}
-  .hero .sub{opacity:.7;font-weight:600;margin-left:6px}
-  .right{margin-left:auto}
-  /* Classement */
-  .rank-table{width:100%;border-collapse:separate;border-spacing:0 10px}
-  .rank-table thead th{font-size:13px;font-weight:700;color:#aeb6c5;text-transform:uppercase;letter-spacing:.04em;padding:0 12px 4px}
-  .rank-table tbody tr{background:linear-gradient(180deg,#171b26,#131722);border:1px solid #242b3a}
-  .rank-table tbody td{padding:14px 12px;vertical-align:middle}
-  .rank-table tbody td:first-child{border-radius:12px 0 0 12px}
-  .rank-table tbody td:last-child{border-radius:0 12px 12px 0}
-  .rank{width:48px;text-align:center;font-weight:800}
-  .logo img{width:44px;height:44px;border-radius:10px;border:1px solid #2a3245;background:#0d0f14;object-fit:contain}
-  .team{font-weight:800;font-size:18px;white-space:nowrap}
-  .pts{font-weight:900}
-  /* supprime l'ombre dupliquée du nom */
-  .team::after{content:none !important}
-  /* Grille équipes (lecture seule) */
-  .grid{display:grid;gap:14px}
-  @media(min-width:800px){ .grid.cols-4{grid-template-columns:repeat(4,1fr)} }
-  .team-card{background:linear-gradient(180deg,#181c29,#121724);border:1px solid #232a3b;border-radius:14px;padding:12px}
-  .team-card .t{display:flex;gap:10px;align-items:center}
-  .team-card img{width:40px;height:40px;border-radius:10px;border:1px solid #2a3245;background:#0d0f14;object-fit:contain}
-  .muted{color:var(--muted);font-size:13px}
+:root{
+  --bg:#0b0d14;
+  --panel:#141826;
+  --panel-2:#101524;
+  --text:#eaf0ff;
+  --muted:#a6b0c6;
+  --line:#242c3f;
+  --accent:#ffb100;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:radial-gradient(1200px 600px at 15% -10%, rgba(255,177,0,.06), transparent 60%), linear-gradient(135deg, #0b0d14, #111629 58%, #0b0f1d);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial,sans-serif}
+header{position:sticky;top:0;z-index:20;background:linear-gradient(90deg, rgba(255,177,0,.12), rgba(255,177,0,.05) 35%, transparent);border-bottom:1px solid var(--line);backdrop-filter:blur(6px)}
+.wrap{max-width:1200px;margin:0 auto;padding:16px}
+.tabs{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.tab{padding:12px 16px;border-radius:12px;background:var(--panel);border:1px solid var(--line);color:var(--text);cursor:pointer;transition:.2s;font-weight:800}
+.tab[aria-selected="true"], .tab:hover{background:linear-gradient(135deg,#1b2032,#161c2b);border-color:#2d3650}
+.public-pill{margin-left:auto;padding:8px 12px;border-radius:999px;border:1px solid var(--line);color:var(--muted);background:#0f1424;font-size:12px}
+main.wrap{padding-top:18px}
+.panel{background:linear-gradient(180deg,#141a2a,#0f1423);border:1px solid var(--line);border-radius:16px;padding:18px}
+.league{display:flex;align-items:center;gap:16px;margin-bottom:8px}
+.league .logo{width:96px;height:96px;border-radius:14px;border:2px solid #2b334c;background:#0d1120;object-fit:cover}
+.league .name{font-size:34px;font-weight:900}
+.actions{margin-left:auto}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;background:#182038;border:1px solid var(--line);color:var(--text);cursor:pointer;font-weight:700}
+.btn:hover{background:#1c2441}
+h2{margin:6px 0 12px 0;font-size:22px}
+.sub{color:var(--muted);font-size:13px;margin:6px 0 10px}
+.table-wrap{overflow:auto;border-radius:12px;border:1px solid var(--line)}
+table{width:100%;border-collapse:collapse;font-size:16px}
+thead th{position:sticky;top:0;background:#161d31;z-index:1}
+th,td{padding:14px 12px;border-bottom:1px solid var(--line);text-align:left}
+tbody tr:hover{background:#121a30}
+.rank{width:56px;text-align:center;font-weight:900}
+.team{display:flex;align-items:center;gap:12px;font-weight:800}
+.team img{width:40px;height:40px;border-radius:8px;border:1px solid #2b3550;background:#0d1120;object-fit:cover}
+.pts{font-weight:1000}
+/* highlights (sobre) */
+tbody tr:nth-child(-n+2){background:linear-gradient(90deg, rgba(46,125,50,.12), rgba(56,142,60,.18))}
+tbody tr:nth-child(n+3):nth-child(-n+6){background:linear-gradient(90deg, rgba(230,140,0,.12), rgba(255,160,0,.18))}
+.note{color:var(--muted);font-size:12px;margin-top:8px}
+.hidden{display:none !important}
+/* Prevent any watermark/duplicate titles behind rows */
+.bg-watermark{display:none !important}
 </style>
 </head>
 <body>
-  <header>
-    <div class="wrap">
-      <nav class="tabs">
-        <button class="tab" aria-selected="true">Classement</button>
-        <button class="tab" disabled>Phase finale</button>
-        <button class="tab" disabled>Matchs en direct</button>
-        <button class="tab" disabled>Matchs terminés</button>
-        <div class="grow"></div>
-        <button id="reload" class="btn">Recharger (no‑cache)</button>
-      </nav>
+<header>
+  <div class="wrap tabs" role="tablist">
+    <button class="tab" aria-selected="true" data-tab="standings">Classement</button>
+    <button class="tab" aria-selected="false" data-tab="live">Matchs en direct</button>
+    <button class="tab" aria-selected="false" data-tab="finished">Matchs terminés</button>
+    <button class="tab" aria-selected="false" data-tab="knockout">Phase finale</button>
+    <button class="tab" aria-selected="false" data-tab="admin">Gestion</button>
+    <span id="publicPill" class="public-pill">chargé depuis <code>data/teams.json</code></span>
+  </div>
+</header>
+
+<main class="wrap">
+  <section id="tab-standings" class="panel">
+    <div class="league">
+      <img id="leagueLogo" alt="logo" class="logo" src="">
+      <div class="name" id="leagueName">Ma Ligue</div>
+      <div class="actions">
+        <button id="reloadBtn" class="btn">Recharger (no‑cache)</button>
+      </div>
     </div>
-  </header>
+    <div class="sub" id="subtitle">Tri : Points ▶︎ Diff ▶︎ BO ▶︎ BD ▶︎ Confrontation directe.</div>
+    <div class="table-wrap">
+      <table id="standings">
+        <thead><tr>
+          <th class="rank">#</th><th>Équipe</th><th>J</th><th>G</th><th>N</th><th>P</th>
+          <th>BP</th><th>BC</th><th>Diff</th><th>BO</th><th>BD</th><th class="pts">Pts</th>
+        </tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <div class="note">Aucun match joué pour l’instant : classement alphabétique (démo visuelle).</div>
+  </section>
 
-  <main class="wrap" style="display:grid;gap:20px;margin-top:20px">
-    <section class="hero panel">
-      <img id="leagueLogo" alt="league" src="" />
-      <div>
-        <h1 id="leagueName">Ma Ligue</h1>
-        <div class="sub">Chargé depuis <code>data/teams.json</code></div>
-      </div>
-      <div class="right muted" id="status"></div>
-    </section>
-
-    <section class="panel" style="padding:18px">
-      <h2 style="margin:0 0 12px">Classement</h2>
-      <div class="muted" style="margin:-6px 0 8px">Tri alphabétique (démo – pas de points tant qu'il n'y a pas de matchs).</div>
-      <div style="overflow:auto">
-        <table class="rank-table" id="table">
-          <thead>
-            <tr>
-              <th class="rank">#</th>
-              <th class="logo">Logo</th>
-              <th class="team">Équipe</th>
-              <th>J</th><th>G</th><th>N</th><th>P</th><th>BP</th><th>BC</th><th>Diff</th><th>BO</th><th>BD</th><th class="pts">Pts</th>
-            </tr>
-          </thead>
-          <tbody id="tbody"></tbody>
-        </table>
-      </div>
-    </section>
-
-    <section class="panel" style="padding:18px">
-      <h3 style="margin:0 0 12px">Équipes (lecture seule)</h3>
-      <div class="grid cols-4" id="teamsGrid"></div>
-    </section>
-  </main>
+  <section id="tab-live" class="panel hidden"><h2>Matchs en direct</h2><div class="sub">Aucun</div></section>
+  <section id="tab-finished" class="panel hidden"><h2>Matchs terminés</h2><div class="sub">Aucun</div></section>
+  <section id="tab-knockout" class="panel hidden"><h2>Phase finale</h2><div class="sub">À générer depuis la Gestion (hors public)</div></section>
+  <section id="tab-admin" class="panel hidden"><h2>Gestion</h2><div class="sub">Masquée en mode public (lecture seule) — les blocs Équipes/Joueurs ont été retirés.</div></section>
+</main>
 
 <script>
-  const TEAMS_URL = "data/teams.json";
+const GITHUB_JSON = (function(){
+  // Essayons d'utiliser le même domaine/chemin que la page est servie.
+  try{
+    const base = new URL(window.location.href);
+    base.pathname = base.pathname.replace(/index\.html?$/,'').replace(/\/$/,'') + '/data/teams.json';
+    return base.toString();
+  }catch(_){ return './data/teams.json'; }
+})();
 
-  async function fetchNoCache(url){
-    const u = new URL(url, location.href);
-    u.searchParams.set("_ts", Date.now());
-    const res = await fetch(u.toString(), { cache: "no-store" });
-    if(!res.ok) throw new Error("HTTP " + res.status);
-    return res.json();
+const state = { league:{name:'Ma Ligue', logo:''}, teams:[] };
+
+function el(id){ return document.getElementById(id); }
+
+function renderTable(){
+  const tbody = el('tbody');
+  const rows = (state.teams||[]).slice().sort((a,b)=> a.name.localeCompare(b.name));
+  tbody.innerHTML = rows.map((t,i)=>{
+    const logo = t.logo ? `<img src="${t.logo}" alt="">` : '<span style="width:40px;height:40px;display:inline-block;border-radius:8px;border:1px solid #2b3550;background:#0d1120"></span>';
+    const name = escapeHtml(t.name||('équipe'+(i+1)));
+    return `<tr>
+      <td class="rank">${i+1}</td>
+      <td><div class="team">${logo}<span>${name}</span></div></td>
+      <td>0</td><td>0</td><td>0</td><td>0</td>
+      <td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class="pts">0</td>
+    </tr>`;
+  }).join('');
+}
+
+function escapeHtml(s){ return (s||'').replace(/[&<>\"']/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[m])) }
+
+async function loadJson(noCache=false){
+  const url = new URL(GITHUB_JSON, window.location.href);
+  if(noCache){ url.searchParams.set('_', Date.now()); }
+  let data;
+  try{
+    const res = await fetch(url.toString(), {cache: noCache ? 'reload':'default'});
+    data = await res.json();
+  }catch(e){
+    console.warn('Échec chargement JSON, tentative fallback ./data/teams.json', e);
+    const res = await fetch('./data/teams.json?_'+Date.now());
+    data = await res.json();
   }
+  // mapping attendu: { leagueName, eventLogo, teams:[{id,name,logo,color,players:[]}] }
+  state.league.name = data.leagueName || 'Ma Ligue';
+  state.league.logo = data.eventLogo || '';
+  state.teams = (data.teams||[]).map(t => ({
+    id: t.id || String(Math.random()).slice(2,9),
+    name: t.name || 'équipe',
+    logo: (t.logo||'').startsWith('http') || (t.logo||'').startsWith('data:') ? t.logo : (t.logo || ''),
+    color: t.color || '#202532',
+    players: Array.isArray(t.players) ? t.players.slice(0,6) : []
+  }));
+  renderHeader();
+  renderTable();
+}
 
-  function el(tag, attrs={}, html=""){
-    const d = document.createElement(tag);
-    for(const [k,v] of Object.entries(attrs)) d.setAttribute(k,v);
-    if(html) d.innerHTML = html;
-    return d;
-  }
+function renderHeader(){
+  el('leagueName').textContent = state.league.name || 'Ma Ligue';
+  const lg = el('leagueLogo');
+  lg.src = state.league.logo || '';
+  lg.style.display = state.league.logo ? 'block':'none';
+}
 
-  function render(league){
-    // header
-    document.getElementById("leagueName").textContent = league.leagueName || "Ma Ligue";
-    const logo = document.getElementById("leagueLogo");
-    logo.src = league.eventLogo ? league.eventLogo : "";
-    logo.style.visibility = league.eventLogo ? "visible":"hidden";
+document.getElementById('reloadBtn').addEventListener('click', ()=> loadJson(true));
 
-    // classement (démo : tri A->Z, stats à 0)
-    const body = document.getElementById("tbody");
-    body.innerHTML = "";
-    const teams = (league.teams||[]).slice().sort((a,b)=>a.name.localeCompare(b.name));
-    teams.forEach((t, i) => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td class="rank">${i+1}</td>
-        <td class="logo">${t.logo?`<img src="${t.logo}" alt="">`:""}</td>
-        <td class="team">${t.name}</td>
-        <td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
-        <td class="pts">0</td>`;
-      body.appendChild(tr);
-    });
+// tabs (visuels uniquement)
+document.querySelectorAll('.tab').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-selected','false'));
+    btn.setAttribute('aria-selected','true');
+    const target = btn.dataset.tab;
+    document.querySelectorAll('main section.panel').forEach(sec=>sec.classList.add('hidden'));
+    document.getElementById('tab-'+target).classList.remove('hidden');
+  });
+});
 
-    // grille équipes
-    const grid = document.getElementById("teamsGrid");
-    grid.innerHTML = "";
-    teams.forEach(t => {
-      const card = el("div", {class:"team-card"});
-      card.innerHTML = `
-        <div class="t">
-          ${t.logo?`<img src="${t.logo}" alt="">`:""}
-          <div>
-            <div style="font-weight:800">${t.name}</div>
-            <div class="muted">${t.color ? t.color : ""}</div>
-          </div>
-        </div>`;
-      grid.appendChild(card);
-    });
-  }
-
-  async function load(){
-    const status = document.getElementById("status");
-    try{
-      status.textContent = "Chargement…";
-      const data = await fetchNoCache(TEAMS_URL);
-      render(data);
-      status.textContent = "OK";
-    }catch(e){
-      console.error(e);
-      status.textContent = "Erreur de chargement";
-      alert("Impossible de charger data/teams.json (" + e.message + ").");
-    }
-  }
-
-  document.getElementById("reload").addEventListener("click", load);
-  load();
+// initial
+loadJson(true);
 </script>
 </body>
 </html>
