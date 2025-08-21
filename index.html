@@ -1,215 +1,157 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Super Skullball by LHV</title>
-
-  <!-- Désactive au maximum le cache côté navigateur -->
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
-
-  <style>
-    :root{
-      --bg:#0f1318;
-      --panel:#111823;
-      --panel2:#0d1420;
-      --text:#e6edf3;
-      --muted:#9fb0c6;
-      --chip:#1b2635;
-      --accent:#94c6ff;
-      --ok:#35c759;
-      --ring:#1b2536;
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
-    a{color:var(--accent);text-decoration:none}
-    .wrap{max-width:1200px;margin:0 auto;padding:24px}
-    .card{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--ring);border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
-    .row{display:flex;gap:12px;flex-wrap:wrap}
-    .nav{display:flex;gap:12px;margin-bottom:16px}
-    .pill{background:#0b1220;border:1px solid var(--ring);border-radius:12px;padding:10px 14px;color:#cdd7e5}
-    .top{display:flex;align-items:center;gap:18px;padding:20px}
-    .top img{width:96px;height:96px;border-radius:12px;object-fit:contain;background:#0d1320;border:1px solid var(--ring)}
-    h1{margin:0;font-size:28px;letter-spacing:.3px}
-    h2{margin:0 0 12px 0;font-size:20px}
-    /* table classement */
-    table{width:100%;border-collapse:collapse;overflow:hidden;border-radius:12px}
-    thead th{font-weight:600;color:#b8c7dc;background:#111a27;border-bottom:1px solid #1a2534;padding:10px 12px;text-align:left}
-    tbody td{border-bottom:1px solid #142034;padding:10px 12px;vertical-align:middle}
-    tbody tr:hover{background:#0e1622}
-    .teamcell{display:flex;align-items:center;gap:10px}
-    .logo{width:28px;height:28px;border-radius:8px;object-fit:contain;background:#0d1420;border:1px solid var(--ring)}
-    /* grille équipes */
-    .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
-    @media (max-width:960px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-    .card-team{padding:14px}
-    .card-team .row1{display:flex;align-items:center;gap:10px;margin-bottom:8px}
-    .chip{display:inline-block;background:var(--chip);border:1px solid #1c2b3f;color:#bcd0ea;padding:4px 8px;border-radius:999px;font-size:12px;margin-right:6px;margin-top:6px}
-    .muted{color:var(--muted)}
-    .right{display:flex;gap:10px;align-items:center;margin-left:auto}
-    .btn{background:#0c1524;border:1px solid #1a2738;color:#cfe0f7;border-radius:10px;padding:8px 12px;cursor:pointer}
-    .btn:hover{background:#0e192a}
-    .ok{color:var(--ok)}
-
-    /* Coupe tout éventuel "nom en fond" fantôme dans le classement */
-    #classement .team-name::after,
-    #classement .team-cell::after,
-    #classement .bg-team-name,
-    #classement .team-bg,
-    .table-standings .team-name::after,
-    .table-standings .team::after,
-    .ranking-table .team-name::after,
-    .ranking-table .team::after {
-      content:none !important;
-      display:none !important;
-      opacity:0 !important;
-      visibility:hidden !important;
-      text-shadow:none !important;
-      filter:none !important;
-    }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tournoi — Classement</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0f141b;
+    --panel:#121a22;
+    --panel2:#0f1922;
+    --muted:#9fb2c8;
+    --text:#dbe7f4;
+    --accent:#60a5fa;
+    --chip:#1e293b;
+    --line:#1b2430;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1280px;margin:0 auto;padding:24px}
+  .tabs{display:flex;gap:12px;margin:8px 0 20px}
+  .tab{padding:10px 16px;border-radius:10px;background:var(--panel2);border:1px solid var(--line);color:#cfe2ff}
+  .tab.active{background:#17212b;border-color:#223142}
+  .hero{display:flex;align-items:center;gap:16px;background:linear-gradient(180deg,#0f1922,#121a22);border:1px solid var(--line);padding:20px;border-radius:16px}
+  .hero img{width:96px;height:96px;object-fit:contain;background:#0b1117;border-radius:12px;border:1px solid #1d2731}
+  .title{font-size:28px;font-weight:800;letter-spacing:.4px}
+  .muted{color:var(--muted);font-size:13px}
+  .panel{margin-top:18px;background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .panel h2{margin:0;padding:16px 18px;border-bottom:1px solid var(--line);font-size:18px}
+  table{width:100%;border-collapse:collapse}
+  thead th{font-weight:600;color:#c9d7e5;background:#111923;border-bottom:1px solid var(--line);padding:12px 10px;text-align:center}
+  thead th:first-child{text-align:left;padding-left:18px}
+  tbody td{padding:12px 10px;border-bottom:1px solid #151f2b;text-align:center}
+  tbody td:first-child{text-align:left;padding-left:18px;display:flex;align-items:center;gap:10px}
+  .logo{width:36px;height:36px;border-radius:8px;background:#0b1117;border:1px solid #1d2731;object-fit:contain}
+  .rank{width:36px;text-align:center;opacity:.9}
+  .team{font-weight:700;letter-spacing:.2px}
+  .btn{background:#132033;border:1px solid #213043;padding:8px 12px;border-radius:10px;color:#cfe2ff;font-weight:600;font-size:13px}
+  .topbar{display:flex;justify-content:space-between;align-items:center}
+</style>
 </head>
 <body>
 <div class="wrap">
-
-  <div class="nav">
-    <span class="pill">Classement</span>
-    <span class="pill">Phase finale</span>
-    <span class="pill">Matchs en direct</span>
-    <span class="pill">Matchs terminés</span>
-    <span class="pill">Gestion</span>
+  <div class="tabs">
+    <div class="tab active">Classement</div>
+    <div class="tab">Phase finale</div>
+    <div class="tab">Matchs en direct</div>
+    <div class="tab">Matchs terminés</div>
+    <div class="tab">Gestion</div>
   </div>
 
-  <div class="card top" id="header">
-    <img id="leagueLogo" alt="logo ligue" />
+  <div class="hero">
+    <img id="eventLogo" alt="logo">
     <div>
-      <h1 id="leagueName">Ma Ligue</h1>
-      <div class="muted">Prévisualisation publique — chargée depuis <code>data/teams.json</code></div>
+      <div class="title" id="leagueName">Ma Ligue</div>
+      <div class="muted">Chargé depuis <code>data/teams.json</code> — affichage public</div>
     </div>
-    <div class="right">
-      <button class="btn" id="refreshBtn" title="Force un rechargement sans cache">Recharger (no‑cache)</button>
+    <div style="margin-left:auto">
+      <button class="btn" id="refresh">Recharger (no‑cache)</button>
     </div>
   </div>
 
-  <div class="card" style="padding:16px;margin-top:16px">
-    <h2>Classement (démo visuelle)</h2>
-    <div class="muted" style="margin:-6px 0 10px 0">Tri alphabétique (pas de points tant qu'il n'y a pas de matchs).</div>
-    <table id="table">
-      <thead>
-        <tr>
-          <th style="width:40px">#</th>
-          <th>Équipe</th>
-          <th style="width:60px">J</th>
-          <th style="width:60px">Pts</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+  <div class="panel" id="classementPanel">
+    <h2>Classement</h2>
+    <div style="overflow:auto">
+      <table id="tableau">
+        <thead>
+          <tr>
+            <th style="width:46px">#</th>
+            <th style="text-align:left">Équipe</th>
+            <th>J</th><th>G</th><th>N</th><th>P</th>
+            <th>BP</th><th>BC</th><th>Diff</th>
+            <th>BO</th><th>BD</th><th>Pts</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
   </div>
-
-  <div class="card" style="padding:16px;margin-top:16px">
-    <h2>Équipes (lecture seule)</h2>
-    <div id="teams" class="grid"></div>
-  </div>
-
 </div>
 
 <script>
 (function(){
-  // --------- Anti-cache robuste ---------
-  const VERSION = Date.now(); // change automatiquement à chaque chargement
-  const BASE = (new URL('.', location.href)).href;
+  const cacheBust = () => 'cb=' + Math.random().toString(36).slice(2);
+  const rows = document.getElementById('rows');
+  const eventLogo = document.getElementById('eventLogo');
+  const leagueName = document.getElementById('leagueName');
+  const refreshBtn = document.getElementById('refresh');
 
-  function bust(url){
-    const u = new URL(url, BASE);
-    u.searchParams.set('v', VERSION);
-    return u.href;
-  }
+  function safeUrl(u){ if(!u) return ''; return u + (u.includes('?')?'&':'?') + cacheBust(); }
 
-  async function getJsonNoCache(url){
-    const u = bust(url);
-    const r = await fetch(u, { cache:'no-store', headers:{ 'Cache-Control':'no-store' } });
-    if(!r.ok) throw new Error('HTTP '+r.status);
-    return await r.json();
-  }
-
-  function setHeader(data){
-    const name = data.leagueName || 'Ma Ligue';
-    const logo = data.eventLogo || '';
-    document.getElementById('leagueName').textContent = name;
-    const img = document.getElementById('leagueLogo');
-    if(logo){ img.src = bust(logo); } else { img.remove(); }
-  }
-
-  function renderTable(teams){
-    const tbody = document.querySelector('#table tbody');
-    tbody.innerHTML = '';
-    const sorted = [...teams].sort((a,b)=>a.name.localeCompare(b.name,'fr'));
-    sorted.forEach((t,idx)=>{
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${idx+1}</td>
-        <td class="teamcell">
-          <img class="logo" src="${bust(t.logo||'')}" alt="logo" />
-          <span>${t.name}</span>
-        </td>
-        <td>0</td>
-        <td>0</td>`;
-      tbody.appendChild(tr);
-    });
-  }
-
-  function renderCards(teams){
-    const host = document.getElementById('teams');
-    host.innerHTML = '';
-    teams.forEach(t=>{
-      const d = document.createElement('div');
-      d.className = 'card-team card';
-      d.innerHTML = `
-        <div class="row1">
-          <img class="logo" src="${bust(t.logo||'')}" alt="logo" />
-          <div>
-            <div style="font-weight:600">${t.name}</div>
-            <div class="muted" style="font-size:12px">${t.color || '#202532'}</div>
-          </div>
-        </div>
-        <div>${(t.players||[]).map(p=>`<span class="chip">${p}</span>`).join('')}</div>`;
-      host.appendChild(d);
-    });
-  }
-
-  async function boot(){
+  async function load() {
+    rows.innerHTML = '<tr><td colspan="12" style="padding:18px;text-align:center;color:#9fb2c8">Chargement…</td></tr>';
     try{
-      const data = await getJsonNoCache('data/teams.json');
-      setHeader(data);
-      renderTable(data.teams||[]);
-      renderCards(data.teams||[]);
-      console.log('%cOK','color:lime','teams.json chargé (no-cache)');
+      const res = await fetch('data/teams.json?'+cacheBust(), {cache:'no-store'});
+      const data = await res.json();
+      leagueName.textContent = data.leagueName || 'Ma Ligue';
+      eventLogo.src = safeUrl(data.eventLogo);
+      eventLogo.alt = 'logo';
+      renderTeams((data.teams||[]));
     }catch(e){
-      console.error('Échec de chargement de data/teams.json', e);
-      const msg = document.createElement('div');
-      msg.className = 'wrap';
-      msg.innerHTML = `<div class="card" style="padding:16px;color:#ffb4a5;border-color:#3a2224;background:#1a0f11">
-        Impossible de charger <code>data/teams.json</code>. Vérifie le chemin et les CORS. ${e.message}
-      </div>`;
-      document.body.appendChild(msg);
+      console.error(e);
+      rows.innerHTML = '<tr><td colspan="12" style="padding:18px;text-align:center;color:#ffaeae">Erreur de chargement des équipes</td></tr>';
     }
   }
 
-  document.getElementById('refreshBtn').addEventListener('click',()=>{
-    // Force un rechargement réseau
-    location.href = location.pathname + '?r=' + Date.now();
-  });
+  function renderTeams(list){
+    // ordre: par id croissant (ça se rapproche de votre ancien affichage)
+    list = (list||[]).slice().sort((a,b)=> (a.id||0)-(b.id||0));
+    rows.innerHTML = '';
+    list.forEach((t,idx)=>{
+      const tr = document.createElement('tr');
+      const logo = document.createElement('img');
+      logo.className = 'logo';
+      logo.src = safeUrl(t.logo);
+      logo.alt = t.name || 'logo';
 
-  // Débranche tout éventuel service worker qui aurait été enregistré par le passé
-  if('serviceWorker' in navigator){
-    navigator.serviceWorker.getRegistrations().then(list=>list.forEach(r=>r.unregister()));
+      const tdRank = document.createElement('td');
+      tdRank.className = 'rank';
+      tdRank.textContent = String(idx+1);
+
+      const tdTeam = document.createElement('td');
+      tdTeam.style.textAlign='left';
+      tdTeam.style.display='flex'; tdTeam.style.alignItems='center'; tdTeam.style.gap='10px';
+      const name = document.createElement('span'); name.className='team'; name.textContent = t.name||('equipe'+(idx+1));
+      tdTeam.appendChild(logo); tdTeam.appendChild(name);
+
+      function td(v){ const el = document.createElement('td'); el.textContent = v; return el; }
+
+      tr.appendChild(tdRank);
+      tr.appendChild(tdTeam);
+      // J,G,N,P,BP,BC,Diff,BO,BD,Pts -> par défaut 0 tant qu'il n'y a pas d'historique de matchs
+      tr.appendChild(td(0)); tr.appendChild(td(0)); tr.appendChild(td(0)); tr.appendChild(td(0));
+      tr.appendChild(td(0)); tr.appendChild(td(0)); tr.appendChild(td(0));
+      tr.appendChild(td(0)); tr.appendChild(td(0)); tr.appendChild(td(0));
+
+      rows.appendChild(tr);
+    });
   }
 
-  boot();
+  refreshBtn.addEventListener('click', load);
+
+  // Désenregistrement SW résiduels
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.getRegistrations?.().then(list=>{
+      list.forEach(r=>r.unregister());
+    }).catch(()=>{});
+  }
+
+  load();
 })();
 </script>
 </body>
