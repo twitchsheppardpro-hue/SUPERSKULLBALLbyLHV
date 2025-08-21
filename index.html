@@ -3539,58 +3539,121 @@ window.addEventListener("DOMContentLoaded", ()=>{
 </script>
 
 
-<!-- V7.6 cleanup: remove local roster editors (Equipes / Effectifs / Joueurs) -->
+<!-- ================== JSON Teams loader (GitHub Pages) ================== -->
+<style>
+  #teamsOverview{margin:2rem 0}
+  #teamsOverview h2{font-size:1.25rem;margin:0 0 .75rem 0}
+  .teams-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+  .team-card{background:#151922;border-radius:12px;padding:14px;box-shadow:0 0 0 1px rgba(255,255,255,.04) inset}
+  .team-header{display:flex;align-items:center;gap:12px}
+  .team-card img{width:56px;height:56px;object-fit:contain;background:#0f1320;border-radius:10px;padding:6px}
+  .team-card h3{margin:.25rem 0 .5rem 0;font-size:1rem}
+  .chip-row{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{background:#222838;border-radius:999px;padding:4px 8px;font-size:.75rem;opacity:.9}
+</style>
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-  try {
-    const killWords = ['équipe', 'équipes', 'effectif', 'effectifs', 'joueur', 'joueurs'];
-    const isKill = (txt) => {
-      const t = (txt || '').toLowerCase().trim();
-      return killWords.some(k => t.includes(k));
-    };
-    const headings = Array.from(document.querySelectorAll('h1,h2,h3,h4'));
-    const removed = [];
-    headings.forEach(h => {
-      if (!isKill(h.textContent)) return;
-      let panel = h.closest('.panel, .card, .box, .block, section, .container');
-      if (!panel) panel = h.parentElement;
-      if (!panel) return;
-      const hasInputs = panel.querySelector('input,select,textarea,button');
-      if (hasInputs) {
-        panel.remove();
-        removed.push(h.textContent.trim());
+(function(){
+  const DATA_URL = 'data/teams.json';
+
+  function setLeagueHeader(leagueName, eventLogo){
+    try{
+      const logo = document.querySelector('img[alt="league"]') || document.querySelector('[data-league-logo]') || document.querySelector('#leagueLogo');
+      if(logo && eventLogo){ logo.src = eventLogo; logo.removeAttribute('srcset'); }
+      // try to find a title close to the logo first
+      let title = document.querySelector('[data-league-name]') || document.querySelector('#leagueName');
+      if(!title && logo){
+        let p = logo.parentElement;
+        for(let i=0;i<3 && p;i++){
+          title = p.querySelector('h1, h2');
+          if(title) break;
+          p = p.parentElement;
+        }
+      }
+      if(!title) title = document.querySelector('h1, h2');
+      if(title && leagueName){ title.textContent = leagueName; }
+    }catch(e){ console.warn('[teams.json] header set failed', e); }
+  }
+
+  function hideEditors(){
+    // Cache: if an element has a heading containing "Équipes" or "Joueurs", hide it.
+    const labels = ['équipe', 'équipes', 'joueur', 'joueurs'];
+    document.querySelectorAll('section,article,div,fieldset,details').forEach(el=>{
+      const h = el.querySelector('h2,h3,h4,summary');
+      if(!h) return;
+      const t = (h.textContent || '').trim().toLowerCase();
+      if(labels.some(k => t.includes(k))){
+        el.style.display = 'none';
       }
     });
-    const fallbackSelectors = [
-      '#teams-editor', '#players-editor', '#effectifs', '#equipes-editor',
-      '[data-panel="teams"]', '[data-panel="players"]'
-    ];
-    fallbackSelectors.forEach(sel => {
-      document.querySelectorAll(sel).forEach(el => el.remove());
-    });
-    document.body.setAttribute('data-roster-source', 'github-json');
-    const badge = document.createElement('div');
-    badge.textContent = 'Rosters chargés depuis GitHub (lecture seule)';
-    Object.assign(badge.style, {
-      position: 'fixed',
-      bottom: '12px',
-      right: '12px',
-      background: 'rgba(0,0,0,0.6)',
-      color: '#fff',
-      padding: '8px 12px',
-      fontSize: '12px',
-      borderRadius: '10px',
-      zIndex: 9999,
-      backdropFilter: 'blur(2px)',
-      boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
-    });
-    document.body.appendChild(badge);
-    setTimeout(() => { badge.remove(); }, 8000);
-    console.log('[V7.6] Cleanup done. Removed panels:', removed);
-  } catch (e) {
-    console.warn('V7.6 cleanup script error:', e);
   }
-});
+
+  function ensureOverviewRoot(){
+    let root = document.querySelector('#teamsOverview');
+    if(root) return root;
+    const main = document.querySelector('main') || document.body;
+    root = document.createElement('section');
+    root.id = 'teamsOverview';
+    root.innerHTML = '<h2>Équipes (lecture seule)</h2><div class="teams-grid" id="teamsGrid"></div>';
+    main.appendChild(root);
+    return root;
+  }
+
+  function renderOverview(league){
+    const grid = ensureOverviewRoot().querySelector('#teamsGrid');
+    grid.innerHTML = '';
+    (league.teams || []).forEach(team => {
+      const card = document.createElement('div');
+      card.className = 'team-card';
+      card.innerHTML = `
+        <div class="team-header">
+          <img alt="logo ${team.name}" src="${team.logo || ''}"/>
+          <div>
+            <h3>${team.name || ''}</h3>
+            <div class="chip-row"><span class="chip" style="background:${team.color || '#222'};">${team.color || ''}</span></div>
+          </div>
+        </div>
+        <div class="chip-row" style="margin-top:.75rem;">
+          ${(team.players || []).map(p => `<span class="chip">${p}</span>`).join('')}
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+  }
+
+  function exposeForApp(league){
+    try{
+      window.LEAGUE = { name: league.leagueName, logo: league.eventLogo };
+      window.TEAMS = league.teams || [];
+      localStorage.setItem('lhv_league', JSON.stringify(window.LEAGUE));
+      localStorage.setItem('lhv_teams', JSON.stringify(window.TEAMS));
+    }catch(e){ console.warn('exposeForApp failed', e); }
+  }
+
+  async function init(){
+    try{
+      const res = await fetch(DATA_URL, { cache:'no-store' });
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      const league = await res.json();
+      // Header + store + overview
+      setLeagueHeader(league.leagueName, league.eventLogo);
+      exposeForApp(league);
+      hideEditors();
+      renderOverview(league);
+      console.info('[teams.json] chargé:', league);
+    }catch(err){
+      console.error('Chargement teams.json échoué:', err);
+    }
+  }
+
+  // lancer quand DOM prêt
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
 </script>
+<!-- ================== /JSON Teams loader ================== -->
+
 </body>
 </html>
