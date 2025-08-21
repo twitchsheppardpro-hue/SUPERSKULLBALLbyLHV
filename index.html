@@ -355,72 +355,6 @@ html.readonly .footer .sub { display: none !important; }
 .goal-controls-split .mini{ padding:6px 10px; }
 </style>
 
-
-<style>
-/* --- Hide the ghost/duplicate team name in standings rows --- */
-#classement .team-name::after,
-#classement .team-cell::after,
-#classement .bg-team-name,
-#classement .team-bg,
-.table-standings .team-name::after,
-.table-standings .team::after {
-  content: none !important;
-  display: none !important;
-  opacity: 0 !important;
-  visibility: hidden !important;
-}
-
-/* Safety: if a span is injected for background label */
-#classement .team-name .bg-team-name {
-  display: none !important;
-}
-</style>
-<style>
-/* ====== HOTFIX: remove ghost/duplicate team name in standings ====== */
-#classement table tr::after,
-#classement table .team::after,
-#classement table .team-name::after,
-#classement .standing-table tr::after,
-#classement .standing-table .team::after,
-#classement .standing-table .team-name::after,
-.standings table tr::after,
-.standings table .team::after,
-.standings table .team-name::after,
-.table-standings tr::after,
-.table-standings .team::after,
-.table-standings .team-name::after,
-.ranking-table tr::after,
-.ranking-table .team::after,
-.ranking-table .team-name::after,
-.classement tr::after,
-.classement .team::after,
-.classement .team-name::after,
-#classement .row::after,
-#classement .team-row::after {
-  content: none !important;
-  display: none !important;
-  opacity: 0 !important;
-  visibility: hidden !important;
-}
-
-/* If a dedicated 'background name' element exists */
-#classement .bg-team-name,
-.standings .bg-team-name,
-.table-standings .bg-team-name,
-.ranking-table .bg-team-name,
-.classement .bg-team-name {
-  display: none !important;
-  opacity: 0 !important;
-  visibility: hidden !important;
-}
-
-/* Make sure the real text is above any overlay */
-#classement td, #classement .team-name, #classement .team {
-  position: relative;
-  z-index: 2;
-}
-/* ====== /HOTFIX ====== */
-</style>
 </head>
 <body>
 <header>
@@ -3604,43 +3538,89 @@ window.addEventListener("DOMContentLoaded", ()=>{
 });
 </script>
 
-<script>
-/* ====== HOTFIX JS: remove any absolutely-positioned duplicate label that equals the team name ====== */
-(function(){
-  function killGhostNameOnce(){
-    const rows = document.querySelectorAll('#classement tr, .standings tr, .ranking-table tr, .table-standings tr, .classement tr');
-    rows.forEach(row => {
-      const nameCell = row.querySelector('.team-name, .team, td:nth-child(2)');
-      if (!nameCell) return;
-      const main = (nameCell.textContent || '').trim();
-      if (!main) return;
-      // scan children for duplicates with low opacity or absolute positioning
-      row.querySelectorAll('*').forEach(el => {
-        if (el === nameCell) return;
-        const txt = (el.textContent || '').trim();
-        if (!txt) return;
-        if (txt === main) {
-          const cs = getComputedStyle(el);
-          const isOverlay = cs.position === 'absolute' || cs.position === 'fixed' || cs.position === 'relative';
-          const lowOpacity = parseFloat(cs.opacity || '1') < 1;
-          const looksGhost = isOverlay || lowOpacity || cs.pointerEvents === 'none';
-          if (looksGhost) {
-            el.style.display = 'none';
-            el.style.opacity = '0';
-            el.style.visibility = 'hidden';
+
+<!-- Anti-ghost (classement) — force hiding of any background/duplicate team-name -->
+<style id="ghost-name-killer-css">
+/* Common classes/nodes that can create the grey background name effect */
+.name-bg, .team-name-bg, .team-name-shadow, .row-name-bg, .rank-name-bg,
+.classement .name-bg, .ranking .name-bg, .standings .name-bg,
+.classement .team-name::before, .classement .team-name::after,
+.ranking .team-name::before, .ranking .team-name::after,
+.standings .team-name::before, .standings .team-name::after {
+  display: none !important;
+  content: none !important;
+  opacity: 0 !important;
+  text-shadow: none !important;
+  filter: none !important;
+}
+/* Try brute-force: kill any pseudo-element that would render text */
+[class*="team"]::before,
+[class*="team"]::after,
+[class*="name"]::before,
+[class*="name"]::after {
+  content: none !important;
+}
+</style>
+
+<script id="ghost-name-killer-js">
+(function () {
+  function killGhosts(root) {
+    try {
+      root = root || document;
+      // Find rows that look like ranking/classement rows
+      const rows = root.querySelectorAll(
+        '.classement tr, .ranking tr, .standings tr, tr[data-team], .team-row'
+      );
+      rows.forEach((row) => {
+        // Find the visible/real team name element
+        const nameEl = row.querySelector(
+          '.team-name, .name, [data-team-name], .team .label, .eq, .teamLabel'
+        );
+        if (!nameEl) return;
+        const real = (nameEl.textContent || '').trim();
+        if (!real) return;
+        const realLC = real.toLowerCase();
+
+        // Any element within row that duplicates the same text is suspicious
+        row.querySelectorAll('*').forEach((el) => {
+          if (el === nameEl) return;
+          const txt = (el.textContent || '').trim();
+          if (!txt) return;
+          if (txt.toLowerCase() === realLC) {
+            const cs = getComputedStyle(el);
+            const looksLikeBg =
+              /bg|ghost|shadow|overlay/i.test(el.className || '') ||
+              cs.opacity < 1 ||
+              cs.position === 'absolute' ||
+              cs.mixBlendMode && cs.mixBlendMode !== 'normal' ||
+              (cs.zIndex !== 'auto' && parseInt(cs.zIndex, 10) < 1);
+
+            if (looksLikeBg) {
+              el.style.display = 'none';
+              el.style.opacity = '0';
+            }
           }
-        }
+        });
       });
-    });
+    } catch (e) {
+      console.warn('[ghost-name-killer] error:', e);
+    }
   }
-  // run after first paint + re-run in case of dynamic updates
-  document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(killGhostNameOnce, 400);
-    setTimeout(killGhostNameOnce, 1000);
-    setInterval(killGhostNameOnce, 2500);
-  });
+
+  // Run asap
+  if (document.readyState !== 'loading') killGhosts();
+  else document.addEventListener('DOMContentLoaded', () => killGhosts());
+
+  // Run after full load too
+  window.addEventListener('load', () => killGhosts());
+
+  // Keep watching; some pages re-render rows after a moment
+  const obs = new MutationObserver(() => killGhosts());
+  obs.observe(document.documentElement, { childList: true, subtree: true });
+
+  // Last resort: periodic sweep
+  setInterval(killGhosts, 1200);
 })();
-/* ====== /HOTFIX JS ====== */
 </script>
 </body>
 </html>
