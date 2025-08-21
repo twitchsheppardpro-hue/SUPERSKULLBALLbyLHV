@@ -375,6 +375,52 @@ html.readonly .footer .sub { display: none !important; }
   display: none !important;
 }
 </style>
+<style>
+/* ====== HOTFIX: remove ghost/duplicate team name in standings ====== */
+#classement table tr::after,
+#classement table .team::after,
+#classement table .team-name::after,
+#classement .standing-table tr::after,
+#classement .standing-table .team::after,
+#classement .standing-table .team-name::after,
+.standings table tr::after,
+.standings table .team::after,
+.standings table .team-name::after,
+.table-standings tr::after,
+.table-standings .team::after,
+.table-standings .team-name::after,
+.ranking-table tr::after,
+.ranking-table .team::after,
+.ranking-table .team-name::after,
+.classement tr::after,
+.classement .team::after,
+.classement .team-name::after,
+#classement .row::after,
+#classement .team-row::after {
+  content: none !important;
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+/* If a dedicated 'background name' element exists */
+#classement .bg-team-name,
+.standings .bg-team-name,
+.table-standings .bg-team-name,
+.ranking-table .bg-team-name,
+.classement .bg-team-name {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+/* Make sure the real text is above any overlay */
+#classement td, #classement .team-name, #classement .team {
+  position: relative;
+  z-index: 2;
+}
+/* ====== /HOTFIX ====== */
+</style>
 </head>
 <body>
 <header>
@@ -3558,5 +3604,43 @@ window.addEventListener("DOMContentLoaded", ()=>{
 });
 </script>
 
+<script>
+/* ====== HOTFIX JS: remove any absolutely-positioned duplicate label that equals the team name ====== */
+(function(){
+  function killGhostNameOnce(){
+    const rows = document.querySelectorAll('#classement tr, .standings tr, .ranking-table tr, .table-standings tr, .classement tr');
+    rows.forEach(row => {
+      const nameCell = row.querySelector('.team-name, .team, td:nth-child(2)');
+      if (!nameCell) return;
+      const main = (nameCell.textContent || '').trim();
+      if (!main) return;
+      // scan children for duplicates with low opacity or absolute positioning
+      row.querySelectorAll('*').forEach(el => {
+        if (el === nameCell) return;
+        const txt = (el.textContent || '').trim();
+        if (!txt) return;
+        if (txt === main) {
+          const cs = getComputedStyle(el);
+          const isOverlay = cs.position === 'absolute' || cs.position === 'fixed' || cs.position === 'relative';
+          const lowOpacity = parseFloat(cs.opacity || '1') < 1;
+          const looksGhost = isOverlay || lowOpacity || cs.pointerEvents === 'none';
+          if (looksGhost) {
+            el.style.display = 'none';
+            el.style.opacity = '0';
+            el.style.visibility = 'hidden';
+          }
+        }
+      });
+    });
+  }
+  // run after first paint + re-run in case of dynamic updates
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(killGhostNameOnce, 400);
+    setTimeout(killGhostNameOnce, 1000);
+    setInterval(killGhostNameOnce, 2500);
+  });
+})();
+/* ====== /HOTFIX JS ====== */
+</script>
 </body>
 </html>
