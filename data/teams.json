@@ -11,91 +11,91 @@
     },
     {
       "id": 2,
-      "name": "equipe2",
+      "name": "Aviron Bayonnais",
       "logo": "logos/equipe2.png",
       "color": "#202532",
       "players": ["Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6"]
     },
     {
       "id": 3,
-      "name": "equipe3",
+      "name": "Castres Olympique",
       "logo": "logos/equipe3.png",
       "color": "#202532",
       "players": ["Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6"]
     },
     {
       "id": 4,
-      "name": "equipe4",
+      "name": "Provence Rugby",
       "logo": "logos/equipe4.png",
       "color": "#202532",
       "players": ["Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6"]
     },
     {
       "id": 5,
-      "name": "equipe5",
+      "name": "RC Toulon",
       "logo": "logos/equipe5.png",
       "color": "#202532",
       "players": ["Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6"]
     },
     {
       "id": 6,
-      "name": "equipe6",
+      "name": "RC Vannes",
       "logo": "logos/equipe6.png",
       "color": "#202532",
       "players": ["Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6"]
     },
     {
       "id": 7,
-      "name": "equipe7",
+      "name": "Section Paloise",
       "logo": "logos/equipe7.png",
       "color": "#202532",
       "players": ["Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6"]
     },
     {
       "id": 8,
-      "name": "equipe8",
+      "name": "Stade Toulousain",
       "logo": "logos/equipe8.png",
       "color": "#202532",
       "players": ["Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6"]
     },
     {
       "id": 9,
-      "name": "equipe9",
+      "name": "Stade Rochelais",
       "logo": "logos/equipe9.png",
       "color": "#202532",
       "players": ["Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6"]
     },
     {
       "id": 10,
-      "name": "equipe10",
+      "name": "Perpignan",
       "logo": "logos/equipe10.png",
       "color": "#202532",
       "players": ["Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6"]
     },
     {
       "id": 11,
-      "name": "equipe11",
+      "name": "Nevers",
       "logo": "logos/equipe11.png",
       "color": "#202532",
       "players": ["Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6"]
     },
     {
       "id": 12,
-      "name": "equipe12",
+      "name": "US Montauban",
       "logo": "logos/equipe12.png",
       "color": "#202532",
       "players": ["Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6"]
     },
     {
       "id": 13,
-      "name": "equipe13",
+      "name": "Union Bordeaux Bègles",
       "logo": "logos/equipe13.png",
       "color": "#202532",
       "players": ["Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6"]
     },
     {
       "id": 14,
-      "name": "equipe14",
+      "name": "Lyon OU",
       "logo": "logos/equipe14.png",
       "color": "#202532",
       "players": ["Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6"]
