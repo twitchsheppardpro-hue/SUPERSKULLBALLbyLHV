@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Skullball – V8.20</title>
+<title>Skullball – V2</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -35,7 +35,7 @@ body{
 }
 .container{max-width:1280px;margin:0 auto;padding:0 16px}
 
-/* Header — layout photo 1, graphic pills photo 2 */
+/* Header */
 header.head{
   position:sticky;top:0;z-index:100;
   padding:18px 0;
@@ -44,9 +44,7 @@ header.head{
   backdrop-filter:blur(8px);
 }
 .head-grid{display:grid;grid-template-columns:auto 1fr auto;gap:20px;align-items:center}
-.event{
-  display:flex;align-items:center;gap:16px
-}
+.event{display:flex;align-items:center;gap:16px}
 .event-logo{
   width:96px;height:96px;border-radius:14px;object-fit:cover;
   background:#0b121c;border:1px solid rgba(255,255,255,.12);
@@ -102,11 +100,7 @@ main{padding:22px 0 64px}
              radial-gradient(100% 100% at 100% 100%,rgba(255,255,255,.04),transparent 60%);
   pointer-events:none
 }
-.side .bar{
-  display:flex;align-items:center;gap:12px;
-  background:linear-gradient(90deg,rgba(255,255,255,.08),rgba(255,255,255,.04));
-  padding:12px 14px;border-radius:12px
-}
+.side .bar{display:flex;align-items:center;gap:12px;background:linear-gradient(90deg,rgba(255,255,255,.08),rgba(255,255,255,.04));padding:12px 14px;border-radius:12px}
 .side .name{font-weight:800;font-size:22px;letter-spacing:.2px}
 .scorebox{background:#0E1520;border:1px solid rgba(255,255,255,.12);border-radius:16px;text-align:center;padding:16px}
 .score{font-size:64px;line-height:1;font-weight:800}
@@ -125,14 +119,26 @@ button.primary{background:var(--accent);color:#2A1800;border:none}
 .sidecell img{width:32px;height:32px;border-radius:8px;border:1px solid rgba(255,255,255,.12)}
 .center{font-weight:900;font-size:22px;text-align:center}
 
-/* Bracket */
+/* --- Phase finale (new) --- */
 .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
 .bucket{background:#0E1520;border:1px solid rgba(255,255,255,.10);border-radius:16px;padding:12px}
 .bucket h3{margin:0 0 10px}
-.pair{display:flex;align-items:center;justify-content:space-between;gap:8px;background:#0F1928;border:1px solid rgba(255,255,255,.10);border-radius:12px;padding:8px 10px;margin-bottom:8px}
-.pair .left,.pair .right{display:flex;align-items:center;gap:8px}
-.pair img{width:26px;height:26px;border-radius:6px;border:1px solid rgba(255,255,255,.14)}
-.pair .s{font-weight:900}
+.br-list{display:flex;flex-direction:column;gap:8px}
+.match{
+  background:#0F1928;border:1px solid rgba(255,255,255,.10);
+  border-radius:12px;padding:8px 10px;
+}
+.teamline{
+  display:grid;grid-template-columns:1fr auto;align-items:center;
+  gap:8px;padding:7px 0;
+}
+.teamL{display:flex;align-items:center;gap:8px}
+.teamL img{width:26px;height:26px;border-radius:6px;border:1px solid rgba(255,255,255,.14)}
+.scoreR{font-weight:900;padding:0 6px}
+.teamline + .teamline{border-top:1px solid rgba(255,255,255,.08)}
+.teamline.winner{background:linear-gradient(90deg,rgba(245,158,11,.20),rgba(245,158,11,.05));}
+.teamline.clickable{cursor:pointer}
+.placeholder{opacity:.6}
 
 /* Hide admin bits by default */
 .admin-only{display:none}
@@ -144,7 +150,7 @@ button.primary{background:var(--accent);color:#2A1800;border:none}
   <div class="container head-grid">
     <div class="event">
       <img id="eventLogo" class="event-logo" alt="logo"/>
-      <h1 id="leagueTitle" class="title">Ligue Hexa – V8.20</h1>
+      <h1 id="leagueTitle" class="title">Ligue Hexa – V2</h1>
     </div>
     <nav id="mainNav" class="nav">
       <button class="pill" data-tab="classement">Classement</button>
@@ -178,15 +184,25 @@ button.primary{background:var(--accent);color:#2A1800;border:none}
         </tr></thead>
         <tbody id="standings"></tbody>
       </table>
+    </div>
     
     <div id="view-bracket" hidden>
       <div class="grid3">
-        <div class="bucket"><h3>Barrages</h3><div id="barrages"></div></div>
-        <div class="bucket"><h3>Demi-finales</h3><div id="demis"></div></div>
-        <div class="bucket"><h3>Finale</h3><div id="finale"></div></div>
+        <div class="bucket">
+          <h3>Barrages</h3>
+          <div id="barrages" class="br-list"></div>
+        </div>
+        <div class="bucket">
+          <h3>Demi-finales</h3>
+          <div id="demis" class="br-list"></div>
+        </div>
+        <div class="bucket">
+          <h3>Finale</h3>
+          <div id="finale" class="br-list"></div>
+        </div>
       </div>
+      <div class="small" style="margin-top:8px">Clique une équipe pour la désigner vainqueur (1–0). Les vainqueurs se propagent automatiquement. Données enregistrées en local.</div>
     </div>
-</div>
 
     <div id="view-buteurs" hidden>
       <table class="table">
@@ -248,7 +264,7 @@ button.primary{background:var(--accent);color:#2A1800;border:none}
     <div id="finished" class="list"></div>
   </section>
 
-<!-- GESTION -->
+  <!-- GESTION -->
   <section id="tab-manage" class="panel" hidden>
     <h3>Gestion</h3>
     <p class="small">LocalStorage uniquement. Vous pouvez remettre à zéro ci-dessous.</p>
@@ -261,119 +277,38 @@ button.primary{background:var(--accent);color:#2A1800;border:none}
   "leagueName": "National League of Skullball",
   "eventLogo": "logos/logoevent.png",
   "teams": [
-    {
-      "id": 1,
-      "name": "Le Hollandais Violent",
-      "logo": "logos/equipe1.png",
-      "color": "#202532",
-      "players": ["Sheppard", "Etagon", "Kz", "Lama", "Sqyze", "Skyllocks"]
-    },
-    {
-      "id": 2,
-      "name": "Aviron Bayonnais",
-      "logo": "logos/equipe2.png",
-      "color": "#202532",
-      "players": ["Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6"]
-    },
-    {
-      "id": 3,
-      "name": "Castres Olympique",
-      "logo": "logos/equipe3.png",
-      "color": "#202532",
-      "players": ["Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6"]
-    },
-    {
-      "id": 4,
-      "name": "Provence Rugby",
-      "logo": "logos/equipe4.png",
-      "color": "#202532",
-      "players": ["Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6"]
-    },
-    {
-      "id": 5,
-      "name": "RC Toulon",
-      "logo": "logos/equipe5.png",
-      "color": "#202532",
-      "players": ["Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6"]
-    },
-    {
-      "id": 6,
-      "name": "RC Vannes",
-      "logo": "logos/equipe6.png",
-      "color": "#202532",
-      "players": ["Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6"]
-    },
-    {
-      "id": 7,
-      "name": "Section Paloise",
-      "logo": "logos/equipe7.png",
-      "color": "#202532",
-      "players": ["Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6"]
-    },
-    {
-      "id": 8,
-      "name": "Stade Toulousain",
-      "logo": "logos/equipe8.png",
-      "color": "#202532",
-      "players": ["Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6"]
-    },
-    {
-      "id": 9,
-      "name": "Stade Rochelais",
-      "logo": "logos/equipe9.png",
-      "color": "#202532",
-      "players": ["Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6"]
-    },
-    {
-      "id": 10,
-      "name": "Perpignan",
-      "logo": "logos/equipe10.png",
-      "color": "#202532",
-      "players": ["Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6"]
-    },
-    {
-      "id": 11,
-      "name": "Nevers",
-      "logo": "logos/equipe11.png",
-      "color": "#202532",
-      "players": ["Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6"]
-    },
-    {
-      "id": 12,
-      "name": "US Montauban",
-      "logo": "logos/equipe12.png",
-      "color": "#202532",
-      "players": ["Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6"]
-    },
-    {
-      "id": 13,
-      "name": "Union Bordeaux Bègles",
-      "logo": "logos/equipe13.png",
-      "color": "#202532",
-      "players": ["Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6"]
-    },
-    {
-      "id": 14,
-      "name": "Lyon OU",
-      "logo": "logos/equipe14.png",
-      "color": "#202532",
-      "players": ["Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6"]
-    }
+    {"id":1,"name":"Le Hollandais Violent","logo":"logos/equipe1.png","color":"#202532","players":["Sheppard","Etagon","Kz","Lama","Sqyze","Skyllocks"]},
+    {"id":2,"name":"Aviron Bayonnais","logo":"logos/equipe2.png","color":"#202532","players":["Joueur 1","Joueur 2","Joueur 3","Joueur 4","Joueur 5","Joueur 6"]},
+    {"id":3,"name":"Castres Olympique","logo":"logos/equipe3.png","color":"#202532","players":["Joueur 1","Joueur 2","Joueur 3","Joueur 4","Joueur 5","Joueur 6"]},
+    {"id":4,"name":"Provence Rugby","logo":"logos/equipe4.png","color":"#202532","players":["Joueur 1","Joueur 2","Joueur 3","Joueur 4","Joueur 5","Joueur 6"]},
+    {"id":5,"name":"RC Toulon","logo":"logos/equipe5.png","color":"#202532","players":["Joueur 1","Joueur 2","Joueur 3","Joueur 4","Joueur 5","Joueur 6"]},
+    {"id":6,"name":"RC Vannes","logo":"logos/equipe6.png","color":"#202532","players":["Joueur 1","Joueur 2","Joueur 3","Joueur 4","Joueur 5","Joueur 6"]},
+    {"id":7,"name":"Section Paloise","logo":"logos/equipe7.png","color":"#202532","players":["Joueur 1","Joueur 2","Joueur 3","Joueur 4","Joueur 5","Joueur 6"]},
+    {"id":8,"name":"Stade Toulousain","logo":"logos/equipe8.png","color":"#202532","players":["Joueur 1","Joueur 2","Joueur 3","Joueur 4","Joueur 5","Joueur 6"]},
+    {"id":9,"name":"Stade Rochelais","logo":"logos/equipe9.png","color":"#202532","players":["Joueur 1","Joueur 2","Joueur 3","Joueur 4","Joueur 5","Joueur 6"]},
+    {"id":10,"name":"Perpignan","logo":"logos/equipe10.png","color":"#202532","players":["Joueur 1","Joueur 2","Joueur 3","Joueur 4","Joueur 5","Joueur 6"]},
+    {"id":11,"name":"Nevers","logo":"logos/equipe11.png","color":"#202532","players":["Joueur 1","Joueur 2","Joueur 3","Joueur 4","Joueur 5","Joueur 6"]},
+    {"id":12,"name":"US Montauban","logo":"logos/equipe12.png","color":"#202532","players":["Joueur 1","Joueur 2","Joueur 3","Joueur 4","Joueur 5","Joueur 6"]},
+    {"id":13,"name":"Union Bordeaux Bègles","logo":"logos/equipe13.png","color":"#202532","players":["Joueur 1","Joueur 2","Joueur 3","Joueur 4","Joueur 5","Joueur 6"]},
+    {"id":14,"name":"Lyon OU","logo":"logos/equipe14.png","color":"#202532","players":["Joueur 1","Joueur 2","Joueur 3","Joueur 4","Joueur 5","Joueur 6"]}
   ]
 }
-
 </script>
 
 <script>
 /* -------- Config -------- */
-const DATA_URL = ""; // mettre l'URL raw GitHub de teams.json si besoin
+const DATA_URL = ""; // URL optionnelle d'un teams.json externe
 
 /* -------- State -------- */
 let TEAMS = [];
 let STATS = {};
-let FINISHED = JSON.parse(localStorage.getItem("sk_v820_finished")||"[]");
+let FINISHED = JSON.parse(localStorage.getItem("sk_v2_finished")||"[]");
 let ADMIN = false;
 let cur = { a:null,b:null,as:0,bs:0,events:[],running:false,start:0,elapsed:0,id:rid() };
+
+/* Bracket (winners only; entrants = auto depuis classement top6)
+   Structure: {br1:{w:'a'|'b'|null}, br2:{...}, s1:{...}, s2:{...}, f:{...}} */
+let BR = JSON.parse(localStorage.getItem("sk_v2_bracket")||"{}");
 
 /* -------- Utils -------- */
 const $ = (sel,ctx=document)=>ctx.querySelector(sel);
@@ -381,6 +316,7 @@ const $$ = (sel,ctx=document)=>Array.from(ctx.querySelectorAll(sel));
 function rid(){ return Math.random().toString(36).slice(2,8); }
 function fmt(s){ const m=String(Math.floor(s/60)).padStart(2,"0"); const z=String(Math.floor(s%60)).padStart(2,"0"); return m+':'+z; }
 function T(id){ return TEAMS.find(t=>t.id==id); }
+function saveLS(){ localStorage.setItem("sk_v2_finished", JSON.stringify(FINISHED)); localStorage.setItem("sk_v2_bracket", JSON.stringify(BR)); }
 
 /* -------- Load teams -------- */
 async function loadTeams(){
@@ -393,7 +329,7 @@ async function loadTeams(){
   }
   if(!data){ data = JSON.parse($("#teams-json").textContent); }
   TEAMS = data.teams||[];
-  $("#leagueTitle").textContent = data.leagueName || "Ligue Hexa – V8.20";
+  $("#leagueTitle").textContent = data.leagueName || "Ligue Hexa – V2";
   if(data.eventLogo) $("#eventLogo").src = data.eventLogo;
 
   // init stats
@@ -415,21 +351,19 @@ async function loadTeams(){
 function showTab(key){
   $$("#mainNav .pill").forEach(p=> p.classList.toggle("active", p.dataset.tab===key));
   $$("main > section").forEach(s=> s.hidden = !s.id.endsWith(key));
-  localStorage.setItem("sk_v820_tab", key);
-  if(key==="classement"){ showSub(localStorage.getItem("sk_v820_sub")||"tableau"); }
+  localStorage.setItem("sk_v2_tab", key);
+  if(key==="classement"){ showSub(localStorage.getItem("sk_v2_sub")||"tableau"); }
 }
 function showSub(k){
   $$(".subnav .pill").forEach(p=> p.classList.toggle("active", p.dataset.sub===k));
   $("#view-tableau").hidden = k!=="tableau";
   $("#view-bracket").hidden = k!=="bracket";
   $("#view-buteurs").hidden = k!=="buteurs";
-  localStorage.setItem("sk_v820_sub", k);
+  localStorage.setItem("sk_v2_sub", k);
 }
 document.addEventListener("click",(e)=>{
-  const t=e.target.closest(".pill");
-  if(t && t.dataset.tab){ showTab(t.dataset.tab); }
-  const s=e.target.closest(".pill.sub");
-  if(s && s.dataset.sub){ showSub(s.dataset.sub); }
+  const t=e.target.closest(".pill"); if(t && t.dataset.tab){ showTab(t.dataset.tab); }
+  const s=e.target.closest(".pill.sub"); if(s && s.dataset.sub){ showSub(s.dataset.sub); }
 });
 
 /* -------- Admin -------- */
@@ -460,8 +394,8 @@ $("#pause").addEventListener("click",()=>{ if(it) clearInterval(it); it=null; cu
 $("#reset").addEventListener("click",()=>{ if(it) clearInterval(it); it=null; cur.running=false; cur.elapsed=0; $("#timer").textContent="00:00"; });
 
 function goal(side,delta){
-  if(side==="a"){ cur.as=Math.max(0,cur.as+delta); $("#as").textContent=cur.as; if(delta>0){ const p=$("#aPlayer").value||"?"; $("#aLog").textContent += ` + ${p} (${fmt((cur.elapsed||0)/1000)})`; } }
-  else { cur.bs=Math.max(0,cur.bs+delta); $("#bs").textContent=cur.bs; if(delta>0){ const p=$("#bPlayer").value||"?"; $("#bLog").textContent += ` + ${p} (${fmt((cur.elapsed||0)/1000)})`; } }
+  if(side==="a"){ cur.as=Math.max(0,cur.as+delta); $("#as").textContent=cur.as; }
+  else { cur.bs=Math.max(0,cur.bs+delta); $("#bs").textContent=cur.bs; }
 }
 $("#aPlus").addEventListener("click",()=>goal("a",+1)); $("#aMoins").addEventListener("click",()=>goal("a",-1));
 $("#bPlus").addEventListener("click",()=>goal("b",+1)); $("#bMoins").addEventListener("click",()=>goal("b",-1));
@@ -470,8 +404,7 @@ $("#finish").addEventListener("click",()=>{
   if(!(cur.a&&cur.b)) return alert("Sélectionner les deux équipes.");
   if(it) clearInterval(it); it=null; cur.running=false;
   const m={id:cur.id,a:cur.a,b:cur.b,ga:cur.as,gb:cur.bs,events:cur.events||[],ts:Date.now(),elapsed:Math.floor((cur.elapsed||0)/1000)};
-  FINISHED.push(m);
-  localStorage.setItem("sk_v820_finished", JSON.stringify(FINISHED));
+  FINISHED.push(m); saveLS();
   // stats 3/1/0
   const A=STATS[m.a], B=STATS[m.b];
   A.J++; B.J++; A.BP+=m.ga; A.BC+=m.gb; B.BP+=m.gb; B.BC+=m.ga; A.Diff=A.BP-A.BC; B.Diff=B.BP-B.BC;
@@ -487,9 +420,13 @@ $("#finish").addEventListener("click",()=>{
 $("#matchId").textContent = "ID "+cur.id;
 
 /* -------- Standings & scorers -------- */
-function renderStandings(){
+function sortedRows(){
   const rows = Object.entries(STATS).map(([id,s])=>({id:Number(id),...s,name:T(id)?.name||"?",logo:T(id)?.logo||""}));
   rows.sort((a,b)=> b.Pts-a.Pts || b.Diff-a.Diff || b.BP-a.BP || a.name.localeCompare(b.name));
+  return rows;
+}
+function renderStandings(){
+  const rows = sortedRows();
   const body=$("#standings"); body.innerHTML="";
   rows.forEach((r,i)=>{
     const tr=document.createElement("tr");
@@ -502,20 +439,8 @@ function renderStandings(){
     body.appendChild(tr);
   });
 
-  // scorers from FINISHED
-  const counts=new Map();
-  FINISHED.forEach(m=> (m.events||[]).forEach(ev=>{
-    const tid = ev.side==="A"? m.a : m.b;
-    const key = (ev.player||"?")+"||"+(T(tid)?.name||"?");
-    counts.set(key,(counts.get(key)||0)+1);
-  }));
-  const arr=[...counts.entries()].map(([k,v])=>{const [p,c]=k.split("||");return {p,c,g:v};}).sort((a,b)=> b.g-a.g || a.p.localeCompare(b.p));
+  // scorers (placeholder, events non enregistrés ici)
   const sb=$("#scorers"); sb.innerHTML="";
-  arr.forEach((x,idx)=>{
-    const tr=document.createElement("tr");
-    tr.innerHTML=`<td class="pos">${idx+1}</td><td>${x.p}</td><td>${x.c}</td><td><strong>${x.g}</strong></td>`;
-    sb.appendChild(tr);
-  });
 }
 
 /* -------- Finished list -------- */
@@ -532,22 +457,96 @@ function renderFinished(){
   });
 }
 
-/* -------- Bracket (placeholder) -------- */
+/* -------- Bracket top6: 3v5, 4v6 -> (1 v W1) & (2 v W2) -> Finale -------- */
+function getSeeds(){
+  const rows = sortedRows();
+  return rows.slice(0,6); // top 6
+}
+
+function winnerId(matchKey, entrants){
+  const w = BR[matchKey]?.w || null;
+  if(!w) return null;
+  const m = entrants[matchKey];
+  const team = (w==='a'? m.a : m.b);
+  return team && team.id ? team.id : null;
+}
+
+function clearIfTeamChanged(oldId, newId, matchKey){
+  if(!oldId) return;
+  if(oldId !== newId){
+    // reset downstream match selection if it referenced old winner
+    if(BR[matchKey]) BR[matchKey].w = null;
+  }
+}
+
 function renderBracket(){
-  const rows = Object.entries(STATS).map(([id,s])=>({id:Number(id),...s,name:T(id)?.name||"?",logo:T(id)?.logo||""}));
-  rows.sort((a,b)=> b.Pts-a.Pts || b.Diff-a.Diff || b.BP-a.BP || a.name.localeCompare(b.name));
-  const top8=rows.slice(0,8);
-  const mk=(l,r)=>`<div class="pair"><div class="left"><img src="${l.logo}"><span>${l.name}</span></div><div class="s">0</div><div class="right"><span>${r.name}</span><img src="${r.logo}"></div></div>`;
-  $("#barrages").innerHTML = top8.length>=8 ? mk(top8[0],top8[7]) + mk(top8[3],top8[4]) : '<div class="small">Définir les équipes…</div>';
-  $("#demis").innerHTML    = top8.length>=8 ? mk(top8[1],top8[6]) + mk(top8[2],top8[5]) : '<div class="small">Définir les équipes…</div>';
-  const f1=rows[0]||{logo:"",name:"—"}, f2=rows[1]||{logo:"",name:"—"};
-  $("#finale").innerHTML = mk(f1,f2);
+  const seeds = getSeeds(); // 1..6
+  const s1 = seeds[0], s2 = seeds[1], s3 = seeds[2], s4 = seeds[3], s5 = seeds[4], s6 = seeds[5];
+
+  const entrants = {
+    br1: { a:s3||null, b:s5||null },
+    br2: { a:s4||null, b:s6||null },
+    s1:  { a:s1||null, b:null },
+    s2:  { a:s2||null, b:null },
+    f:   { a:null, b:null }
+  };
+
+  // Propagate known winners
+  const w1 = s3&&s5 ? winnerId('br1', entrants) : null;
+  const w2 = s4&&s6 ? winnerId('br2', entrants) : null;
+
+  entrants.s1.b = w1 ? { ...(T(w1)||{}), id:w1, name:T(w1)?.name||"?",
+                         logo:T(w1)?.logo||"" } : null;
+  entrants.s2.b = w2 ? { ...(T(w2)||{}), id:w2, name:T(w2)?.name||"?",
+                         logo:T(w2)?.logo||"" } : null;
+
+  const wS1 = (entrants.s1.a && entrants.s1.b) ? winnerId('s1', entrants) : null;
+  const wS2 = (entrants.s2.a && entrants.s2.b) ? winnerId('s2', entrants) : null;
+
+  entrants.f.a = wS1 ? { ...(T(wS1)||{}), id:wS1, name:T(wS1)?.name||"?", logo:T(wS1)?.logo||"" } : null;
+  entrants.f.b = wS2 ? { ...(T(wS2)||{}), id:wS2, name:T(wS2)?.name||"?", logo:T(wS2)?.logo||"" } : null;
+
+  // Build UI
+  const mk = (key, label)=>{
+    const m = entrants[key];
+    const wrap = document.createElement('div');
+    wrap.className = 'match';
+    // rows
+    const r1 = document.createElement('div');
+    r1.className = 'teamline '+(m.a?'clickable':'')+' '+(BR[key]?.w==='a'?'winner':'');
+    r1.addEventListener('click',()=>{ if(!m.a) return; BR[key]=BR[key]||{}; BR[key].w='a'; saveLS(); renderBracket(); });
+    r1.innerHTML = `<div class="teamL ${m.a?'':'placeholder'}">${m.a? `<img src="${m.a.logo||''}"><span>${m.a.name}</span>`:'—'}</div>
+                    <div class="scoreR">${BR[key]?.w==='a' ? '1' : '0'}</div>`;
+
+    const r2 = document.createElement('div');
+    r2.className = 'teamline '+(m.b?'clickable':'')+' '+(BR[key]?.w==='b'?'winner':'');
+    r2.addEventListener('click',()=>{ if(!m.b) return; BR[key]=BR[key]||{}; BR[key].w='b'; saveLS(); renderBracket(); });
+    r2.innerHTML = `<div class="teamL ${m.b?'':'placeholder'}">${m.b? `<img src="${m.b.logo||''}"><span>${m.b.name}</span>`:'—'}</div>
+                    <div class="scoreR">${BR[key]?.w==='b' ? '1' : '0'}</div>`;
+
+    wrap.appendChild(r1); wrap.appendChild(r2);
+    return wrap;
+  };
+
+  // Render columns
+  const b = $("#barrages"); b.innerHTML='';
+  const d = $("#demis"); d.innerHTML='';
+  const f = $("#finale"); f.innerHTML='';
+
+  b.appendChild(mk('br1'));
+  b.appendChild(mk('br2'));
+  d.appendChild(mk('s1'));
+  d.appendChild(mk('s2'));
+  f.appendChild(mk('f'));
 }
 
 /* -------- Manage -------- */
 $("#wipe").addEventListener("click",()=>{
   if(!confirm("Tout ré-initialiser ?")) return;
-  FINISHED=[]; localStorage.removeItem("sk_v820_finished");
+  FINISHED=[];
+  BR={};
+  localStorage.removeItem("sk_v2_finished");
+  localStorage.removeItem("sk_v2_bracket");
   Object.keys(STATS).forEach(id=> STATS[id]={J:0,G:0,N:0,P:0,BP:0,BC:0,Diff:0,BO:0,BD:0,Pts:0});
   renderStandings(); renderFinished(); renderBracket();
 });
@@ -555,10 +554,10 @@ $("#wipe").addEventListener("click",()=>{
 /* -------- Boot -------- */
 $$("#mainNav .pill").forEach(b=> b.addEventListener("click",()=>showTab(b.dataset.tab)));
 function boot(){
-  const saved = localStorage.getItem("sk_v820_tab");
+  const saved = localStorage.getItem("sk_v2_tab");
   const valid = ["classement","live","finished","manage"];
   showTab(valid.includes(saved)? saved : "classement");
-  showSub(localStorage.getItem("sk_v820_sub")||"tableau");
+  showSub(localStorage.getItem("sk_v2_sub")||"tableau");
   loadTeams();
 }
 boot();
