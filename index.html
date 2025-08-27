@@ -1,712 +1,687 @@
 <!DOCTYPE html>
-
 <html lang="fr">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1" name="viewport"/>
-<title>Tournoi – Classement, Live, Terminés &amp; Phases finales (V7.4)</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Skullball – Tournoi</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg:#0e0f13;
-    --panel:#161923;
-    --panel-2:#1f2430;
-    --text:#e9ecf1;
-    --muted:#a7b0c0;
-    --accent:#ff5f00;
-    --good:#2ecc71;
-    --bad:#e74c3c;
-    --warn:#f1c40f;
-    --row:#121520;
-    --shadow: 0 8px 24px rgba(0,0,0,.35);
-    --radius: 16px;
-    --header-grad: linear-gradient(90deg,rgba(255,95,0,.15),rgba(255,95,0,.05) 35%, transparent);
-    --bg-grad: linear-gradient(135deg,#0b0c10,#151824 55%, #10131c);
-    --panel-grad: linear-gradient(180deg,#171b26,#121520);
-    --mid-grad: linear-gradient(180deg,#151a26,#10141f);
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  body{margin:0;background:var(--bg-grad);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial,sans-serif;}
-  header{position:sticky;top:0;z-index:50;background:var(--header-grad);backdrop-filter: blur(6px);border-bottom:1px solid #242a37;}
-  .wrap{max-width:1680px;margin:0 auto;padding:18px 20px}
-  @media (min-width:1600px){ .wrap{max-width:92vw} }
-  .tabs{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-  .tab{padding:14px 18px;border-radius:12px;background:var(--panel);border:1px solid #232839;color:var(--text);cursor:pointer;transition:.2s;font-weight:800;font-size:16px}
-  .tab[aria-selected="true"], .tab:hover{background:linear-gradient(135deg,#1c2230 0%, #161b27 70%);border-color:#2b3347;box-shadow:var(--shadow)}
-  .grow{flex:1}
-  .btn{display:inline-flex;align-items:center;gap:8px;padding:12px 16px;border-radius:12px;background:#1f2430;border:1px solid #2b3344;color:var(--text);cursor:pointer;font-weight:700}
-  .btn.primary{background:linear-gradient(135deg,var(--accent),#ff6a13);border-color:var(--accent);color:#0b0c10;font-weight:900}
-  .btn.ghost{background:transparent;border:1px dashed #2b3344;color:var(--muted)}
-  .panel{background:var(--panel-grad);border:1px solid #242a37;border-radius:var(--radius);box-shadow:var(--shadow);padding:20px}
-  .grid{display:grid;gap:16px}
-  .grid.cols-2{grid-template-columns: 1fr 1fr}
-  .grid.cols-3{grid-template-columns: 1fr 1fr 1fr}
-  .section-title{font-size:26px;margin:0 0 10px 0;font-weight:900}
-  .sub{color:var(--muted);font-size:14px;margin-bottom:6px}
-  .league-head{display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:14px}
-  .league-head .logo{width:96px;height:96px;border-radius:14px;object-fit:cover;border:2px solid #2b3347;background:#0e111a}
-  .league-head .name{font-size:36px;font-weight:900; letter-spacing:.5px}
-
-  table{width:100%;border-collapse:collapse;font-size:22px}
-  thead th{position:sticky;top:0;background:#1a1f2b;z-index:2}
-  th,td{padding:18px 16px;border-bottom:1px solid #242a37;text-align:left}
-  tbody tr:hover{background:#151a24}
-  .rank{width:72px;text-align:center;font-weight:900}
-  .team-cell{display:flex;align-items:center;gap:16px;font-weight:800}
-  .team-cell img{width:56px;height:56px;border-radius:10px;object-fit:cover;border:1px solid #30384b;background:#0e111a}
-  .pts{font-weight:1000;font-size:24px}
-  .bo, .bd{font-weight:800;font-size:18px}
-
-  .live-list{display:grid;grid-template-columns:1fr;gap:16px}
-  .match-card{border-radius:18px;overflow:hidden;box-shadow:var(--shadow);border:1px solid #252a39}
-  .row{display:grid;grid-template-columns:96px 1fr auto 1fr 96px;align-items:center}
-  .cell{padding:14px 16px;background:linear-gradient(180deg,#111521,#0c0f18)}
-  .cell.mid{background:var(--mid-grad); text-align:center}
-  .badge{font-size:14px;color:#fff;background:rgba(255,255,255,.08);border:1px solid #2b3347;padding:6px 10px;border-radius:999px}
-  .team{display:flex;align-items:center;gap:14px}
-  .team img{width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid #30384b;background:#0e111a}
-  .team .name{font-weight:900;font-size:20px}
-  .score{font-size:52px;font-weight:1000;letter-spacing:1px}
-  .timer{font-weight:900;font-variant-numeric:tabular-nums}
-  .timer.big{display:inline-block;margin-top:6px;font-size:28px}
-  .meta{display:flex;flex-direction:column;align-items:center;gap:4px;margin-bottom:6px}
-  .badge.day{font-size:12px;opacity:.9}
-  .badge.status{font-size:12px;font-weight:900;text-transform:uppercase}
-
-  .controls{display:flex;gap:10px;justify-content:center}
-  .mini{padding:9px 12px;border-radius:12px;background:#1d2230;border:1px solid #2b3347;color:var(--text);cursor:pointer;font-weight:700}
-  .mini:hover{background:#22283a}
-  .cell.side{position:relative; overflow:hidden}
-  .cell.side .bg-logo{
-    position:absolute; inset:0;
-    background-repeat:no-repeat;
-    background-position:center;
-    background-size:65% auto;
-    opacity:.06;
-    filter:grayscale(100%);
-    pointer-events:none;
-    z-index:0;
-  }
-  .cell.side .content{position:relative; z-index:1}
-  /* Left: nudge logo to the left a bit; Right: to the right */
-  .cell.side.left .bg-logo{background-position:left 32% center}
-  .cell.side.right .bg-logo{background-position:right 32% center}
-
-  .footer{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#0e111a;color:var(--muted);border-top:1px solid #242a37}
-
-  .form{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  .form label{font-size:13px;color:var(--muted)}
-  .input, select{width:100%;padding:12px 14px;border-radius:12px;border:1px solid #2b3347;background:#151a24;color:var(--text);font-size:16px}
-
-  .list{display:grid;gap:10px}
-  .item{display:flex;gap:10px;align-items:center;padding:12px;border:1px solid #242a37;border-radius:12px;background:#121622}
-  .item img{width:32px;height:32px;border-radius:50%;object-fit:cover;border:1px solid #2b3347}
-  .right{margin-left:auto;display:flex;gap:8px}
-  .note{font-size:12px;color:var(--muted)}
-  .hide{display:none}
-  .admin-hidden{display:none !important}
-
-  .banner{padding:10px 14px;border:1px dashed #2b3347;background:#121622;border-radius:10px;color:var(--muted);font-weight:800}
-  .filterbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
-  .chip{padding:8px 10px;border-radius:999px;border:1px solid #2b3347;background:#1a1f2b;color:var(--text);cursor:pointer}
-  .chip[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:#0b0c10;font-weight:900}
-
-  /* Bracket (view-only) */
-  .bracket{display:grid;grid-template-columns:1fr 1.2fr 1fr; gap:24px}
-  .round{background:var(--panel-grad);border:1px solid #242a37;border-radius:16px;padding:12px}
-  .round h4{margin:0 0 8px 0}
-  .game{border:1px solid #2b3347;border-radius:12px;padding:12px;margin-bottom:10px;background:#131826}
-  .game .line{display:flex;align-items:center;gap:10px;justify-content:space-between}
-  .game .line + .line{margin-top:6px}
-  .game .t{display:flex;align-items:center;gap:10px}
-  .game .t img{width:28px;height:28px;border-radius:50%;border:1px solid #2b3347;background:#0e111a}
-  .game .score-mini{font-weight:800}
-  .game.semi{padding:14px}
-  .game.finale{padding:16px;border-width:2px}
-  .round.semi h4{font-size:18px}
-  .round.finale h4{font-size:20px}
-  .round .t strong{font-size:14px}
-  .round.semi .t strong{font-size:16px}
-  .round.finale .t strong{font-size:18px}
-
-  .public-badge{margin-left:8px;font-size:12px;padding:6px 8px;border-radius:10px;background:#1d2230;border:1px solid #2b3347;color:var(--muted)}
-
-  .toast{position:fixed;right:16px;bottom:16px;background:#101520;border:1px solid #2b3347;color:#fff;padding:10px 14px;border-radius:10px;box-shadow:var(--shadow);opacity:0;transform:translateY(8px);transition:.25s}
-  .toast.show{opacity:1;transform:translateY(0)}
-  /* Half-background watermark logos inside the colored gradient */
-  .match-card .row{position:relative}
-  .match-card .row .bg-half{
-    position:absolute; top:0; bottom:0; width:50%;
-    background-repeat:no-repeat; background-position:center; background-size:70% auto;
-    opacity:.07; filter:grayscale(100%);
-    pointer-events:none; z-index:0;
-  }
-  .match-card .row .bg-half.left{left:0}
-  .match-card .row .bg-half.right{right:0}
-  .match-card .row .cell{position:relative; z-index:1}
-
-
-  /* Force Import/Export controls to remain on the same row */
-  .btn-row-nowrap{display:flex;gap:8px;align-items:center;flex-wrap:nowrap;white-space:nowrap}
-
-/* simplified gating */
-#adminBadge button {
-  border: none; padding: 8px 10px; border-radius: 10px; cursor: pointer;
-}
-#adminBadge .enter { background: #2563eb; color:#fff; }
-#adminBadge .exit  { background: #ef4444; color:#fff; }
-#adminBadge .state { opacity: 0.9; }
-
-
-/* Minimal gating */
-.readonly .disable-when-public { display: none !important; }
-
-/* Public mode hides marked controls */
-.readonly .disable-when-public { display: none !important; }
-
-/* Gestion locked view: hide everything and show a neutral placeholder */
-.gestion-locked > * { display: none !important; }
-.gestion-locked > .locked-placeholder { 
-  display: block !important; 
-  padding: 40px 24px; 
-  text-align: center; 
-  font: 600 16px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Arial; 
-  opacity: 0.85;
-}
-
-
-/* --- Bracket readability tweaks (V3.59) --- */
-.bracket .game .team-logo,
-.phase-finale .game .team-logo {
-  width: 28px !important;
-  height: 28px !important;
-  flex: 0 0 28px !important;
-  margin-right: 10px !important;
-}
-.bracket .game .team-name,
-.phase-finale .game .team-name,
-.bracket .game .team,
-.phase-finale .game .team {
-  font-size: 16px !important;   /* was ~14px */
-  font-weight: 600 !important;
-  line-height: 1.2 !important;
-  white-space: nowrap;
-}
-/* increase vertical padding slightly to avoid cramped layout */
-.bracket .game,
-.phase-finale .game {
-  padding-top: 8px !important;
-  padding-bottom: 8px !important;
-}
-/* ensure score column keeps enough space */
-.bracket .game .score,
-.phase-finale .game .score {
-  min-width: 24px;
-  text-align: right;
-}
-
-</style>
-
-
-
-<style>
-/* Allow long team names in Phase finale */
-.phase-finale-longnames .team-name,
-.phase-finale-longnames .team,
-.phase-finale-longnames [class*="name"] {
-  white-space: normal !important;
-  overflow: visible !important;
-  text-overflow: initial !important;
-}
-</style>
-
-
-<style>
-/* V3.59: hide only the small ID line in match cards when in public (readonly) */
-html.readonly .footer .sub { display: none !important; }
-</style>
-
-
-<style>
-/* V3.59: Classement — highlights inspirés Flashscore */
-/* Rang 1-2 (demi-finales directes) */
-#standingsWrap table tbody tr:nth-child(-n+2) {
-  background: linear-gradient(90deg, rgba(100,200,80,0.11), rgba(100,200,80,0.18)) !important;
-}
-
-/* Rang 3-6 (barrages) */
-#standingsWrap table tbody tr:nth-child(n+3):nth-child(-n+6) {
-  background: linear-gradient(90deg, rgba(255,190,50,0.11), rgba(255,190,50,0.18)) !important;
-}
-
-/* Bordure subtile pour structurer */
-#standingsWrap table tbody tr:nth-child(-n+6) {
-  border-bottom: 1px solid rgba(255,255,255,0.15);
-}
-</style>
-
-
-<style>
-/* V3.59: Classement — couleurs plus proches Flashscore, plus sobres */
-/* Rangs 1-2 : vert sobre */
-#standingsWrap table tbody tr:nth-child(-n+2) {
-  background: linear-gradient(90deg, rgba(46, 125, 50, 0.12), rgba(56, 142, 60, 0.18)) !important;
-}
-
-/* Rangs 3-6 : orange cuivré */
-#standingsWrap table tbody tr:nth-child(n+3):nth-child(-n+6) {
-  background: linear-gradient(90deg, rgba(230, 140, 0, 0.12), rgba(255, 160, 0, 0.18)) !important;
-}
-
-/* Bordure encore plus subtile pour garder l'équilibre visuel */
-#standingsWrap table tbody tr:nth-child(-n+6) {
-  border-bottom: 1px solid rgba(255,255,255,0.1);
-}
-</style>
-
-
-<style>
-/* v15 runtime */
-
-/* --- League logo bigger --- */
-.league-head .logo{
-  width:160px !important;
-  height:160px !important;
-  border-radius:14px;
-  object-fit:cover;
-  border:2px solid #2b3347;
-  background:#0e111a;
-}
-
-/* ===== Classement Buteurs ===== */
-#scorersWrap table.rank-table{ table-layout:fixed; width:100%; border-collapse:separate; border-spacing:0; }
-#scorersWrap table.rank-table th, 
-#scorersWrap table.rank-table td{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-
-/* Podium */
-#scorersWrap table.rank-table tbody tr:nth-child(1){ background: linear-gradient(90deg, #D4AF37 0%, #d3a533 100%) !important; }
-#scorersWrap table.rank-table tbody tr:nth-child(2){ background: linear-gradient(90deg, #C0C0C0 0%, #b7b7b7 100%) !important; }
-#scorersWrap table.rank-table tbody tr:nth-child(3){ background: linear-gradient(90deg, #CD7F32 0%, #c0702a 100%) !important; }
-
-/* À partir de la 4e */
-#scorersWrap table.rank-table tbody tr:nth-child(n+4){
-  background: linear-gradient(90deg, #131722 0%, #0F131D 100%) !important;
-}
-
-#scorersWrap table.rank-table td, #scorersWrap table.rank-table th { border-color:#2b3344; }
-#scorersWrap table.rank-table th.rank,  #scorersWrap table.rank-table td.rank  { width:50px;  text-align:left; }
-#scorersWrap table.rank-table th.player,#scorersWrap table.rank-table td.player{ text-align:left; font-weight:700; }
-
-/* Colonnes dimensionnées 25 / 20 / 20 / (reste) */
-#scorersWrap table.rank-table th.player, #scorersWrap table.rank-table td.player { width:25%; }
-#scorersWrap table.rank-table th.logo,   #scorersWrap table.rank-table td.logo   { width:20%; text-align:center; }
-#scorersWrap table.rank-table th.pts,    #scorersWrap table.rank-table td.pts    { width:20%; text-align:center; }
-#scorersWrap table.rank-table th.spacerR,#scorersWrap table.rank-table td.spacerR{ width:auto; }
-
-/* Logo club plus grand dans la colonne Club */
-#scorersWrap table.rank-table td.logo img { width:64px; height:64px; object-fit:contain; border-radius:6px; }
-</style>
-
-<style>
-/* V17: spacing & sizing for Classement/Buteurs switch bar */
-.btn-switchbar{ display:flex; gap:8px; flex-wrap:wrap; margin:8px 0 6px; }
-.btn.small{ padding:8px 12px; font-size:14px; border-radius:16px; }
-</style>
-
-<style>
-/* V18: Players management */
-.players-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.players-grid .row{display:flex;gap:8px;align-items:center}
-.players-grid .row label{width:34px;color:var(--muted)}
-.players-grid .row input{flex:1}
-@media (max-width:640px){ .players-grid{grid-template-columns:1fr} }
-</style>
-
-<style>
-/* V19: Roster list panel */
-.roster-list .team{display:flex;align-items:flex-start;gap:10px;padding:10px;border:1px solid #2b3347;border-radius:10px;background:#121622}
-.roster-list .team .name{font-weight:800}
-.roster-list .team .players{color:var(--muted)}
-.roster-list{display:grid;gap:8px}
-</style>
-
-<style>
-/* V6.14: chips scorers and split goal controls */
-.scorers-strip{ display:inline-flex; gap:8px; flex-wrap:wrap; background:#0f1220; border:1px solid #2b3344; border-radius:8px; padding:6px 8px; }
-.scorers-strip .chip{ background:#1a1f2f; border:1px solid #2b3344; border-radius:16px; padding:2px 8px; font-size:12px; color:#d6deff; }
-.team-scorers{ margin-top:6px; }
-.team-scorers.right{ display:flex; justify-content:flex-end; }
-.goal-controls-split{ display:flex; justify-content:space-between; gap:12px; margin-top:8px; }
-.goal-controls-split .side{ display:flex; align-items:center; gap:8px; }
-.goal-controls-split .input{ min-width:180px; }
-.goal-controls-split .mini{ padding:6px 10px; }
-
-/* === V8.0 (2025-08-22) – Remove background team name/logo in standings rows === */
-#standingsWrap .team-cell .row-bg-name,
-#standingsWrap .team-cell .row-bg-logo { display: none !important; visibility: hidden !important; }
-
-/* === V8.1 (2025-08-22) – Remove light overlay on team cells in standings === */
-#standingsWrap .team-cell { 
-  background-image: none !important;
-  background-blend-mode: normal !important;
-}
-
-/* === V8.2 (2025-08-22) – Fixed row colors for standings ranks === */
-#standingsWrap tbody tr:nth-child(1) td { background-color: #ddab5d !important; }
-#standingsWrap tbody tr:nth-child(2) td { background-color: #ddab5d !important; }
-#standingsWrap tbody tr:nth-child(3) td,
-#standingsWrap tbody tr:nth-child(4) td,
-#standingsWrap tbody tr:nth-child(5) td,
-#standingsWrap tbody tr:nth-child(6) td { background-color: #b48f58 !important; }
-
-/* === V8.3 (2025-08-22) – Apply 80% opacity to standings row colors === */
-#standingsWrap tbody tr:nth-child(1) td,
-#standingsWrap tbody tr:nth-child(2) td { background-color: rgba(221,171,93,0.8) !important; }
-#standingsWrap tbody tr:nth-child(3) td,
-#standingsWrap tbody tr:nth-child(4) td,
-#standingsWrap tbody tr:nth-child(5) td,
-#standingsWrap tbody tr:nth-child(6) td { background-color: rgba(180,143,88,0.8) !important; }
-
-/* === V8.6 (2025-08-22) – Hide 'Couleurs Classements' panel safely (no DOM break) === */
-#rankColorsCard { display: none !important; }
-
-/* === V8.7 (2025-08-22) – Force exact colors for standings rows (1–2 and 3–6), no gradients === */
-#standingsWrap table tbody tr:nth-child(-n+2),
-.rank-table tbody tr:nth-child(-n+2){
-  background-image: none !important;
-  background-color: rgba(221,171,93,0.8) !important; /* ddab5d @ 80% */
-  background-blend-mode: normal !important;
-}
-#standingsWrap table tbody tr:nth-child(n+3):nth-child(-n+4),
-.rank-table tbody tr:nth-child(n+3):nth-child(-n+4){
-  background-image: none !important;
-  background-color: rgba(180,143,88,0.8) !important; /* b48f58 @ 80% */
-  background-blend-mode: normal !important;
-}
-#standingsWrap table tbody tr:nth-child(n+5):nth-child(-n+6),
-.rank-table tbody tr:nth-child(n+5):nth-child(-n+6){
-  background-image: none !important;
-  background-color: rgba(180,143,88,0.8) !important; /* b48f58 @ 80% */
-  background-blend-mode: normal !important;
-}
-
-/* === V8.8 (2025-08-22) – Exact standings colors (no gradient), 80% opacity === */
-#standingsWrap table tbody tr:nth-child(-n+2),
-.rank-table tbody tr:nth-child(-n+2){
-  background-image: none !important;
-  background-color: rgba(181,143,80,0.8) !important; /* #b58f50 */
-  background-blend-mode: normal !important;
-}
-#standingsWrap table tbody tr:nth-child(n+3):nth-child(-n+4),
-.rank-table tbody tr:nth-child(n+3):nth-child(-n+4){
-  background-image: none !important;
-  background-color: rgba(152,121,75,0.8) !important; /* #98794b */
-  background-blend-mode: normal !important;
-}
-#standingsWrap table tbody tr:nth-child(n+5):nth-child(-n+6),
-.rank-table tbody tr:nth-child(n+5):nth-child(-n+6){
-  background-image: none !important;
-  background-color: rgba(152,121,75,0.8) !important; /* #98794b */
-  background-blend-mode: normal !important;
-}
-
-/* === V8.9 (2025-08-22) – Accent orange + fond tricolore (FR) === */
 :root {
-  --accent: #ff7b00 !important; /* Accent fixe orange */
-  --header-grad: linear-gradient(90deg, rgba(0,85,164,0.85), rgba(255,255,255,0.25) 50%, rgba(239,65,53,0.85)) !important;
-  --bg-grad: linear-gradient(135deg, #0055A4, #ffffff 50%, #EF4135) !important;
+  --bg-dark: #0f1720;
+  --bg-panel: #151b23;
+  --text: #e8eef7;
+  --muted: #95a2b3;
+  --accent: #ff8a00;
+  --pill-bg: rgba(255,255,255,.1);
+  --pill-stroke: rgba(255,255,255,.25);
+  --shadow: 0 6px 24px rgba(0,0,0,.35);
+  --gold1: #d0a45e;
+  --gold2: #b08648;
+  --row-border: #263141;
 }
 
-/* === V8.10 (2025-08-22) – Tricolore en tiers égaux, bleu/rouge plus foncés === */
-:root {
-  /* Bleu plus foncé (#002654), Rouge plus foncé (#CE1126) */
-  --header-grad: linear-gradient(
-    90deg,
-    rgba(0,38,84,0.90) 0%,
-    rgba(0,38,84,0.90) 33.33%,
-    rgba(255,255,255,0.18) 33.33%,
-    rgba(255,255,255,0.18) 66.66%,
-    rgba(206,17,38,0.90) 66.66%,
-    rgba(206,17,38,0.90) 100%
-  ) !important;
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  color: var(--text);
+  background: linear-gradient(135deg, #002654 0%, #002654 30%, #ffffff 50%, #CE1126 80%, #CE1126 100%);
+  background-attachment: fixed;
+}
+.container { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
 
-  --bg-grad: linear-gradient(
-    135deg,
-    #002654 0%,
-    #002654 33.33%,
-    #ffffff 33.33%,
-    #ffffff 66.66%,
-    #CE1126 66.66%,
-    #CE1126 100%
-  ) !important;
+header.app-head {
+  position: sticky; top: 0; z-index: 50;
+  padding: 18px 0;
+  backdrop-filter: blur(8px);
+  background: linear-gradient(90deg, rgba(0,38,84,0.92) 0%, rgba(0,38,84,0.6) 35%, rgba(255,255,255,0.12) 60%, rgba(206,17,38,0.55) 80%, rgba(206,17,38,0.7) 100%);
+  border-bottom: 1px solid rgba(255,255,255,.1);
+}
+.head-row { display: grid; grid-template-columns: auto 1fr auto; gap: 20px; align-items: center; }
+.logo-wrap { display:flex; align-items:center; gap:16px; }
+.logo-wrap img.event-logo {
+  width: 92px; height: 92px; border-radius: 14px; object-fit: cover;
+  box-shadow: 0 10px 26px rgba(0,0,0,.35);
+}
+h1.title { margin: 0; font-weight: 800; font-size: 28px; letter-spacing: .2px; text-shadow: 0 2px 8px rgba(0,0,0,.35); }
+.nav-pills { display:flex; gap: 14px; flex-wrap: wrap; }
+
+.pill {
+  display:inline-flex; align-items:center; gap:10px;
+  padding: 10px 16px; border-radius: 999px;
+  background: var(--pill-bg);
+  border: 1px solid var(--pill-stroke);
+  color: var(--text); font-weight: 600; cursor: pointer; user-select: none;
+  transition: transform .04s ease, background .15s ease, border-color .15s ease;
+}
+.pill.active { background: #ff9c1a; border-color: transparent; color: #1b1103; }
+.pill:hover { transform: translateY(-1px); }
+
+.admin-pill { justify-self: end; }
+.admin-pill svg { width: 16px; height: 16px; }
+
+main { padding: 22px 0 64px; }
+.panel {
+  background: linear-gradient(180deg, rgba(12,18,26,0.86), rgba(12,18,26,0.86)) padding-box;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 16px; padding: 18px; box-shadow: var(--shadow);
 }
 
-/* === V8.11 (2025-08-22) – Continuous tricolor gradient (no repeat) === */
-:root {
-  --bg-grad: linear-gradient(
-    135deg,
-    #002654 0%,
-    #ffffff 50%,
-    #CE1126 100%
-  ) !important;
+.subnav { display:flex; gap:10px; align-items:center; margin: 8px 0 12px; }
+.subnav .pill { background: rgba(255,255,255,.06); }
 
-  --header-grad: linear-gradient(
-    90deg,
-    rgba(0,38,84,0.9) 0%,
-    rgba(255,255,255,0.25) 50%,
-    rgba(206,17,38,0.9) 100%
-  ) !important;
+.caption { color: var(--muted); font-size: 14px; margin-bottom: 8px; }
+
+/* Classement table */
+.table { width: 100%; border-collapse: collapse; border-spacing: 0; }
+.table thead th {
+  font-weight: 700; text-align:left; padding: 12px 10px; font-size: 14px; color: #dbe6f6; border-bottom: 1px solid rgba(255,255,255,.08);
 }
-
-/* === V8.12 (2025-08-22) – Tricolor with reduced white band === */
-:root {
-  --bg-grad: linear-gradient(
-    135deg,
-    #002654 0%,
-    #002654 35%,
-    #ffffff 50%,
-    #CE1126 65%,
-    #CE1126 100%
-  ) !important;
-
-  --header-grad: linear-gradient(
-    90deg,
-    rgba(0,38,84,0.9) 0%,
-    rgba(0,38,84,0.9) 35%,
-    rgba(255,255,255,0.25) 50%,
-    rgba(206,17,38,0.9) 65%,
-    rgba(206,17,38,0.9) 100%
-  ) !important;
+.table tbody td {
+  padding: 14px 10px; border-bottom: 1px solid rgba(255,255,255,.06); font-size: 15px;
 }
+.table .pos { width: 36px; font-weight: 700; color: #fff; }
+.team-cell { display:flex; align-items:center; gap:12px; }
+.team-logo { width: 44px; height: 44px; border-radius: 12px; object-fit: cover; background: #0a0f16; border: 1px solid rgba(255,255,255,.1); }
+.row-top { background: linear-gradient(0deg, rgba(0,0,0,.1), rgba(0,0,0,.1)), linear-gradient(90deg, var(--gold1), var(--gold2)); }
+.row-regular { background: rgba(255,255,255,.02); }
 
-/* === V8.16 (2025-08-22) – Mixed gradient (between V8.11 & V8.12) === */
-:root {
-  --bg-grad: linear-gradient(
-    135deg,
-    #002654 0%,
-    #002654 32%,
-    #ffffff 56%,
-    #CE1126 56%,
-    #CE1126 100%
-  ) !important;
+/* Live match */
+.live-wrap { display:grid; grid-template-columns: 1fr 160px 1fr; gap: 16px; align-items: center; }
+.side { background: linear-gradient(180deg, rgba(20,26,35,.9), rgba(20,26,35,.9)); padding: 18px; border-radius: 14px; border: 1px solid rgba(255,255,255,.06); position: relative; }
+.side .team-bar { display:flex; align-items:center; gap:12px; padding: 10px 12px; border-radius: 10px; background: rgba(255,255,255,.04); }
+.side .team-name { font-weight: 800; font-size: 20px; }
+.score-box { text-align:center; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.08); border-radius: 14px; padding: 14px; }
+.score-box .score { font-size: 48px; font-weight: 800; }
+.time-badge { display:inline-block; margin-top: 8px; padding: 6px 12px; border-radius: 999px; background: var(--pill-bg); border: 1px solid var(--pill-stroke); font-weight: 700; }
 
-  --header-grad: linear-gradient(
-    90deg,
-    rgba(0,38,84,0.9) 0%,
-    rgba(0,38,84,0.9) 32%,
-    rgba(255,255,255,0.25) 56%,
-    rgba(206,17,38,0.9) 56%,
-    rgba(206,17,38,0.9) 100%
-  ) !important;
+.ctrls { display:flex; gap:10px; justify-content:center; margin-top: 10px; }
+.ctrls button {
+  padding: 8px 10px; border-radius: 10px; border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.06); color: var(--text); cursor: pointer; font-weight: 700;
 }
+.small { font-size: 12px; color: var(--muted); }
 
-/* === V8.17 (2025-08-22) – Smooth tricolor: blue→white→red (no flat white band) === */
-:root {
-  /* Background: smooth transitions; white only as midpoint, not a flat band */
-  --bg-grad: linear-gradient(
-    135deg,
-    #002654 0%,
-    #002654 30%,
-    #ffffff 50%,
-    #CE1126 80%,
-    #CE1126 100%
-  ) !important;
-
-  /* Header: same logic, with softer white for tab readability */
-  --header-grad: linear-gradient(
-    90deg,
-    rgba(0,38,84,0.92) 0%,
-    rgba(0,38,84,0.92) 30%,
-    rgba(255,255,255,0.22) 50%,
-    rgba(206,17,38,0.92) 80%,
-    rgba(206,17,38,0.92) 100%
-  ) !important;
+.flex { display:flex; gap: 12px; align-items:center; }
+.select, select, input[type="text"] {
+  background: rgba(255,255,255,.06); color: var(--text); border: 1px solid rgba(255,255,255,.12);
+  border-radius: 10px; padding: 10px 12px; font-weight: 600;
 }
+button.primary { background: #ff9c1a; color: #1b1103; border: none; }
+button.linklike { background: transparent; border: none; color: var(--muted); cursor:pointer; text-decoration: underline; }
 
-/* === V8.20 (2025-08-22) – Safe hide of 'Paramètres de ligue' (keep DOM to avoid JS errors) === */
-#tab-admin #leagueForm,
-#tab-admin #applyPalette,
-#tab-admin #exportBtn,
-#tab-admin #importFile,
-#tab-admin #resetData {
-  display: none !important;
-  visibility: hidden !important;
-  pointer-events: none !important;
+/* Finished matches list */
+.match-card {
+  display:grid; grid-template-columns: 1fr 80px 1fr; align-items:center; gap: 8px;
+  background: rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:10px 12px;
 }
+.match-side { display:flex; align-items:center; gap:10px; font-weight:700; }
+.match-side img { width: 28px; height: 28px; border-radius:8px; border:1px solid rgba(255,255,255,.12); }
+.match-score { text-align:center; font-weight:800; font-size: 20px; }
+
+/* Phase finale */
+.bracket { display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+.bracket .bucket { background: rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:12px; }
+.bucket h3 { margin: 0 0 8px; }
+.bracket .pair { display:flex; align-items:center; justify-content:space-between; gap: 8px; background: rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:8px 10px; margin-bottom:8px; }
+.bracket .pair .left, .bracket .pair .right { display:flex; align-items:center; gap:8px; }
+.bracket .pair img { width: 24px; height: 24px; border-radius:6px; border:1px solid rgba(255,255,255,.12); }
+.bracket .pair .score { font-weight:800; }
+
+/* Footer spacer */
+footer { height: 32px; }
+
+.hidden { display:none !important; }
 </style>
-
 </head>
 <body>
-<header>
-<div class="wrap tabs" role="tablist">
-<button aria-selected="true" class="tab" data-tab="standings" role="tab">Classement</button>
-<button aria-selected="false" class="tab" data-tab="live" role="tab">Matchs en direct</button>
-<button aria-selected="false" class="tab" data-tab="finished" role="tab">Matchs terminés</button>
-<button aria-selected="false" class="tab" data-tab="knockout" role="tab">Phase finale</button>
-<button aria-selected="false" class="tab" data-tab="admin" role="tab">Gestion</button>
-<div class="grow"></div>
-<span class="public-badge hide" id="publicBadge">Mode public (lecture seule)</span>
-</div>
-</header>
-<main class="wrap" style="padding-top:16px">
-<section class="grid" id="tab-standings">
-<div class="panel">
-<div class="league-head" id="leagueHead">
-<img alt="league" class="logo" id="leagueLogo" src=""/>
-<div class="name" id="leagueName">Ma Ligue</div>
-</div>
-<h2 class="section-title">Classement</h2>
-<div class="sub"><span id="rankSubtitle"></span></div>
-<div id="standingsWrap" style="margin-top:12px"></div>
-</div>
-</section>
-<section class="grid hide" id="tab-live">
-<div class="panel">
-<h2 class="section-title">Matchs en direct</h2>
-<div class="sub"></div>
-<div class="live-list" id="liveBanners"></div>
-</div>
-</section>
-<section class="grid hide" id="tab-finished">
-<div class="panel">
-<h2 class="section-title">Matchs terminés</h2>
-<div class="filterbar" id="finishedFilter"></div>
-<div class="live-list" id="finishedList"></div>
-</div>
-</section>
-<section class="grid hide" id="tab-knockout">
-<div class="panel">
-<h2 class="section-title">Phase finale</h2>
-<div class="sub"></div>
-<div class="bracket" id="bracket"></div>
-</div>
-</section>
-<section class="grid cols-2 hide" id="tab-admin">
-<div class="panel">
-<h3 class="section-title">Paramètres de ligue</h3>
-<form class="form" id="leagueForm">
-<div><label>Nom de la ligue</label><input class="input" name="leagueName" placeholder="ex. LHV League"/></div>
-<div><label>Logo – URL</label><input class="input" name="leagueLogoUrl" placeholder="https://…png"/></div>
-<div><label>Mode public (lecture seule)</label>
-<select class="input" name="publicMode"><option value="0">Non</option><option value="1">Oui</option></select>
-</div>
-<div><label>Thème</label>
-<select class="input" id="themePreset" name="themePreset">
-<option value="europa">Europa League</option>
-<option value="ucl">Ligue des Champions</option>
-<option value="custom">Personnalisé</option>
-</select>
-</div>
-<div class="grid cols-3">
-<div><label>Couleur accent</label><input class="input" name="accentColor" type="color" value="#ff5f00"/></div>
-<div><label>Fond (haut)</label><input class="input" name="bg1" type="color" value="#0b0c10"/></div>
-<div><label>Fond (bas)</label><input class="input" name="bg2" type="color" value="#151824"/></div>
-</div>
-<div class="grid cols-3">
-<div>
-<label>Appliquer palette du thème</label><button class="btn" id="applyPalette" type="button">Appliquer</button>
-<div class="note">Remplit accent/bg avec les couleurs par défaut du thème sélectionné.</div>
-</div>
-</div>
-<div class="grid cols-3">
-  <div>
-    <label>Import/Export JSON</label>
-    <div class="btn-row-nowrap" style="display:flex; gap:8px; flex-wrap:nowrap; align-items:center; white-space:nowrap">
-      <button class="btn" id="exportBtn" type="button">Exporter JSON</button>
-      <label class="btn ghost">Importer JSON
-        <input accept="application/json" hidden id="importFile" type="file"/>
-      </label>
+<header class="app-head">
+  <div class="container head-row">
+    <div class="logo-wrap">
+      <img class="event-logo" id="eventLogo" alt="Logo évènement" src="" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2292%22 height=%2292%22><rect width=%2292%22 height=%2292%22 rx=%2214%22 fill=%22%23101818%22/><text x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%23fff%22 font-size=%2212%22 font-family=%22Inter%22>Logo</text></svg>'">
+      <h1 class="title" id="leagueTitle">Ligue Hexa – V8.20</h1>
     </div>
-    <div class="note">Sauvegarde/restaure l'état (équipes, matchs, paramètres) depuis un fichier.</div>
+    <nav class="nav-pills" id="mainNav">
+      <button class="pill" data-tab="classement">Classement</button>
+      <button class="pill" data-tab="live">Matchs en direct</button>
+      <button class="pill" data-tab="finished">Matchs terminés</button>
+      <button class="pill" data-tab="bracket">Phase finale</button>
+      <button class="pill" data-tab="manage">Gestion</button>
+    </nav>
+    <button id="adminToggle" class="pill admin-pill" title="Basculer mode admin">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 17a2 2 0 0 0 2-2V9a2 2 0 1 0-4 0v6a2 2 0 0 0 2 2z"/><path d="M7 9V7a5 5 0 1 1 10 0v2"/><rect x="5" y="9" width="14" height="10" rx="2"/>
+      </svg>
+      Admin
+    </button>
   </div>
-</div>
-<div style="display:flex;gap:8px;align-items:center">
-<button class="btn" id="resetData" type="button">Réinitialiser données</button>
-</div>
-<div style="align-self:end;margin-top:8px"><button class="btn primary">Sauvegarder</button></div></form>
-<div class="note" id="storageNote">Stockage utilisé : —</div>
-</div>
-<div class="panel">
-<h3 class="section-title">Règles &amp; Options</h3>
-<div class="grid cols-3">
-<div><label>Points victoire</label><input class="input" id="ptsWin" max="9" min="1" type="number" value="3"/></div>
-<div><label>Points nul</label><input class="input" id="ptsDraw" max="9" min="0" type="number" value="1"/></div>
-<div><label>Points défaite</label><input class="input" id="ptsLoss" max="9" min="0" type="number" value="0"/></div>
-<div><label>BO (+ points)</label><input class="input" id="boPoints" max="3" min="0" type="number" value="1"/></div>
-<div><label>Seuil BO (écart ≥)</label><input class="input" id="boMargin" max="50" min="1" type="number" value="3"/></div>
-<div><label>BD (+ points)</label><input class="input" id="bdPoints" max="3" min="0" type="number" value="1"/></div>
-<div><label>Seuil BD (écart ≤ en cas de défaite)</label><input class="input" id="bdMargin" max="50" min="0" type="number" value="1"/></div>
-<div><label>Activer bonus (BO/BD)</label>
-<select class="input" id="bonusEnabled">
-<option value="1">Oui</option>
-<option value="0">Non</option>
-</select>
-</div>
-<div><label>Durée match (minutes)</label><input class="input" id="defaultDuration" max="180" min="1" type="number" value="15"/></div>
-</div>
-<div style="margin-top:10px"><button class="btn" id="saveRules">Sauvegarder règles</button></div>
-</div>
-<div class="panel">
-<h3 class="section-title">Équipes (max 14)</h3>
-<form autocomplete="off" class="form" id="teamForm">
-<div><label>Nom d'équipe</label><input class="input" name="name" placeholder="ex. LHV" required=""/></div>
-<div><label>Couleur (fond)</label><input class="input" name="color" type="color" value="#202532"/></div>
-<div><label>Logo – URL</label><input class="input" name="logoUrl" placeholder="https://…png"/></div>
-<div><label>Logo – Fichier (compressé 96×96)</label><input accept="image/*" class="input" name="logoFile" type="file"/><div class="note">PNG garde la transparence. JPEG allège mais remplit le fond.</div></div>
-<div style="align-self:end;display:flex;gap:8px;">
-<button class="btn primary" type="submit">Ajouter/Mettre à jour</button>
-<button class="btn" id="resetTeamForm" type="button">Nouveau</button>
-</div>
-<input name="editId" type="hidden"/>
-</form>
-<div style="height:12px"></div>
-<div class="list" id="teamsList"></div>
-</div>
+</header>
 
-
-<div class="panel" id="playersPanel">
-  <h3 class="section-title">Joueurs</h3>
-  <form class="form" id="playerForm" autocomplete="off">
-    <div><label>Nom</label><input class="input" name="playerName" required placeholder="Nom du joueur"/></div>
-    <div><label>Équipe</label><select class="input" name="playerTeam" required></select></div>
-    <div style="align-self:end;display:flex;gap:8px;">
-      <button class="btn primary" type="submit">Ajouter / Mettre à jour</button>
-      <button class="btn" id="resetPlayerForm" type="button">Nouveau</button>
+<main class="container">
+  <!-- CLASSEMENT TAB -->
+  <section id="tab-classement" class="panel hidden">
+    <div class="caption">Tri : Points ▸ Diff ▸ BP ▸ Confrontation directe.</div>
+    <div class="subnav">
+      <button class="pill sub active" data-sub="tableau">Classement</button>
+      <button class="pill sub" data-sub="buteurs">Buteurs</button>
     </div>
-    <input type="hidden" name="editId"/>
-  </form>
-  <div style="height:12px"></div>
-  <div style="margin-top:8px"><button class="btn" id="togglePlayersList" type="button">Masquer la liste</button></div>
-<div class="list" id="playersList"></div>
-</div>
-</div>
 
-<div class="panel">
-  <h3 class="section-title">Effectifs (lecture seule)</h3>
-  <div class="sub">Vue récap des joueurs enregistrés par équipe.</div>
-  <div class="roster-list" id="rosterList"></div>
-</div>
-<div class="panel">
-<h3 class="section-title">Matchs</h3>
-<div style="margin-top:0;display:flex;gap:8px;align-items:center">
-<button class="btn" id="genRR">Générer les matchs</button>
-<label class="btn ghost"><input id="homeAway" type="checkbox"/> Aller/Retour</label>
-<button class="btn" id="genKO">Générer les phases finales</button>
-</div>
-<form class="form" id="matchForm">
-<div><label>Équipe A</label><select class="input" name="teamA" required=""></select></div>
-<div><label>Équipe B</label><select class="input" name="teamB" required=""></select></div>
-<div><label>Journée</label><input class="input" min="1" name="matchday" type="number" value="1"/></div>
-<div><label>Durée match (min)</label><input class="input" id="durationInput" min="1" name="duration" type="number"/></div>
-<div style="align-self:end"><button class="btn primary" type="submit">Ajouter le match</button></div>
-</form>
-<div class="admin-hidden" style="height:12px"></div>
-<div class="list admin-hidden" id="matchesList"></div>
-</div>
-</section>
+    <div id="classement-view">
+      <table class="table" id="standingsTable">
+        <thead>
+          <tr>
+            <th class="pos">#</th><th>Équipe</th>
+            <th>J</th><th>G</th><th>N</th><th>P</th>
+            <th>BP</th><th>BC</th><th>Diff</th>
+            <th>BO</th><th>BD</th><th>Pts</th>
+          </tr>
+        </thead>
+        <tbody id="standingsBody"></tbody>
+      </table>
+    </div>
+
+    <div id="buteurs-view" class="hidden">
+      <table class="table">
+        <thead><tr><th class="pos">#</th><th>Joueur</th><th>Club</th><th>Buts</th></tr></thead>
+        <tbody id="scorersBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- LIVE TAB -->
+  <section id="tab-live" class="panel hidden">
+    <div class="live-wrap">
+      <div class="side" id="sideA">
+        <div class="team-bar">
+          <img id="teamALogo" class="team-logo" alt="logo A"/>
+          <div class="team-name" id="teamAName">—</div>
+        </div>
+        <div class="admin-only" id="adminA">
+          <div class="flex" style="margin-top:10px">
+            <label class="small">Équipe A</label>
+            <select id="teamASelect"></select>
+          </div>
+          <div class="flex">
+            <label class="small">Buteur</label>
+            <select id="teamAPlayer"></select>
+            <button class="primary" id="addGoalA">+1</button>
+            <button id="subGoalA">-1</button>
+          </div>
+          <div id="logA" class="small"></div>
+        </div>
+      </div>
+
+      <div class="score-box">
+        <div class="small" id="roundLabel">Journée 1</div>
+        <div class="pill" style="display:inline-block;margin:6px 0;">EN DIRECT</div>
+        <div class="score"><span id="scoreA">0</span> – <span id="scoreB">0</span></div>
+        <div class="time-badge" id="timer">00:00</div>
+        <div class="ctrls admin-only">
+          <button id="playBtn">▶</button>
+          <button id="pauseBtn">⏸</button>
+          <button id="resetBtn">↺</button>
+        </div>
+        <div class="ctrls admin-only">
+          <button class="primary" id="finishBtn">Match terminé</button>
+          <button id="swapBtn">Inverser côtés</button>
+        </div>
+        <div class="small" id="matchId">ID —</div>
+      </div>
+
+      <div class="side" id="sideB">
+        <div class="team-bar">
+          <div class="team-name" id="teamBName">—</div>
+          <img id="teamBLogo" class="team-logo" alt="logo B"/>
+        </div>
+        <div class="admin-only" id="adminB">
+          <div class="flex" style="margin-top:10px">
+            <label class="small">Équipe B</label>
+            <select id="teamBSelect"></select>
+          </div>
+          <div class="flex">
+            <label class="small">Buteur</label>
+            <select id="teamBPlayer"></select>
+            <button class="primary" id="addGoalB">+1</button>
+            <button id="subGoalB">-1</button>
+          </div>
+          <div id="logB" class="small"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FINISHED TAB -->
+  <section id="tab-finished" class="panel hidden">
+    <div id="finishedList" class="vstack" style="display:grid; gap:10px;"></div>
+  </section>
+
+  <!-- BRACKET TAB -->
+  <section id="tab-bracket" class="panel hidden">
+    <div class="bracket">
+      <div class="bucket">
+        <h3>Barrages</h3>
+        <div id="barrages"></div>
+      </div>
+      <div class="bucket">
+        <h3>Demi-finales</h3>
+        <div id="demis"></div>
+      </div>
+      <div class="bucket">
+        <h3>Finale</h3>
+        <div id="finale"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MANAGE TAB -->
+  <section id="tab-manage" class="panel hidden">
+    <h3>Gestion</h3>
+    <p class="small">Mode simple : tout est en local (localStorage). Vous pouvez ré-initialiser ci-dessous.</p>
+    <div class="flex">
+      <button class="primary" id="resetData">Ré-initialiser les données (scores, matchs)</button>
+      <button id="reloadTeams">Recharger les équipes</button>
+    </div>
+    <p class="small">Pour charger un teams.json depuis GitHub, éditez la constante <code>DATA_URL</code> en haut du script (ou mettez un fichier <code>teams.json</code> à côté).</p>
+  </section>
 </main>
-<div class="toast" id="toast">Lien public copié ✅</div>
 
+<footer></footer>
+
+<!-- Embedded fallback teams JSON (used if no fetch URL works) -->
+<script id="teams-json" type="application/json">
+{
+  "leagueName": "National League of Skullball",
+  "eventLogo": "logos/logoevent.png",
+  "teams": [
+    {
+      "id": 1,
+      "name": "Le Hollandais Violent",
+      "logo": "logos/equipe1.png",
+      "color": "#202532",
+      "players": ["Sheppard", "Etagon", "Kz", "Lama", "Sqyze", "Skyllocks"]
+    },
+    {
+      "id": 2,
+      "name": "Aviron Bayonnais",
+      "logo": "logos/equipe2.png",
+      "color": "#202532",
+      "players": ["Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6"]
+    },
+    {
+      "id": 3,
+      "name": "Castres Olympique",
+      "logo": "logos/equipe3.png",
+      "color": "#202532",
+      "players": ["Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6"]
+    },
+    {
+      "id": 4,
+      "name": "Provence Rugby",
+      "logo": "logos/equipe4.png",
+      "color": "#202532",
+      "players": ["Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6"]
+    },
+    {
+      "id": 5,
+      "name": "RC Toulon",
+      "logo": "logos/equipe5.png",
+      "color": "#202532",
+      "players": ["Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6"]
+    },
+    {
+      "id": 6,
+      "name": "RC Vannes",
+      "logo": "logos/equipe6.png",
+      "color": "#202532",
+      "players": ["Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6"]
+    },
+    {
+      "id": 7,
+      "name": "Section Paloise",
+      "logo": "logos/equipe7.png",
+      "color": "#202532",
+      "players": ["Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6"]
+    },
+    {
+      "id": 8,
+      "name": "Stade Toulousain",
+      "logo": "logos/equipe8.png",
+      "color": "#202532",
+      "players": ["Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6"]
+    },
+    {
+      "id": 9,
+      "name": "Stade Rochelais",
+      "logo": "logos/equipe9.png",
+      "color": "#202532",
+      "players": ["Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6"]
+    },
+    {
+      "id": 10,
+      "name": "Perpignan",
+      "logo": "logos/equipe10.png",
+      "color": "#202532",
+      "players": ["Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6"]
+    },
+    {
+      "id": 11,
+      "name": "Nevers",
+      "logo": "logos/equipe11.png",
+      "color": "#202532",
+      "players": ["Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6"]
+    },
+    {
+      "id": 12,
+      "name": "US Montauban",
+      "logo": "logos/equipe12.png",
+      "color": "#202532",
+      "players": ["Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6"]
+    },
+    {
+      "id": 13,
+      "name": "Union Bordeaux Bègles",
+      "logo": "logos/equipe13.png",
+      "color": "#202532",
+      "players": ["Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6"]
+    },
+    {
+      "id": 14,
+      "name": "Lyon OU",
+      "logo": "logos/equipe14.png",
+      "color": "#202532",
+      "players": ["Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6"]
+    }
+  ]
+}
+
+
+</script>
+
+<script>
+// =================== Config ===================
+// Option 1: leave empty to use embedded JSON OR local 'teams.json'
+// Option 2: set to raw GitHub URL (ex: 'https://raw.githubusercontent.com/user/repo/branch/teams.json')
+const DATA_URL = "";
+
+// =================== State ===================
+let TEAMS = [];
+let FINISHED_MATCHES = JSON.parse(localStorage.getItem('skullball_finished')||'[]');
+let STATS = {}; // teamId -> stats
+let ADMIN_MODE = false;
+let current = { teamA: null, teamB: null, scoreA:0, scoreB:0, events:[], startTs:null, running:false, id: genId() };
+
+// =================== Utilities ===================
+function el(id){ return document.getElementById(id); }
+function q(sel, ctx=document){ return ctx.querySelector(sel); }
+function qa(sel, ctx=document){ return Array.from(ctx.querySelectorAll(sel)); }
+function genId(){ return Math.random().toString(36).slice(2,8); }
+function formatTime(sec){
+  const m = Math.floor(sec/60).toString().padStart(2,'0');
+  const s = Math.floor(sec%60).toString().padStart(2,'0');
+  return m+':'+s;
+}
+
+// =================== Load teams ===================
+async function loadTeams(){
+  try{
+    let data;
+    if (DATA_URL){
+      const r = await fetch(DATA_URL, {cache:'no-store'});
+      data = await r.json();
+    } else {
+      // try local teams.json first (works when served via http)
+      try {
+        const r2 = await fetch('teams.json', {cache:'no-store'});
+        if (r2.ok) data = await r2.json();
+      } catch(e){/* ignore */}
+      if (!data){
+        // fallback to embedded
+        data = JSON.parse(el('teams-json').textContent);
+      }
+    }
+    TEAMS = data.teams || [];
+    // UI: header
+    el('leagueTitle').textContent = data.leagueName || 'Ligue Hexa – V8.20';
+    if (data.eventLogo) el('eventLogo').src = data.eventLogo;
+    // populate selects
+    const opts = TEAMS.map(t=>`<option value="${t.id}">${t.name}</option>`).join('');
+    el('teamASelect').innerHTML = '<option value="">—</option>'+opts;
+    el('teamBSelect').innerHTML = '<option value="">—</option>'+opts;
+    // init stats
+    STATS = {};
+    TEAMS.forEach(t=>{
+      STATS[t.id] = {J:0,G:0,N:0,P:0,BP:0,BC:0,Diff:0,BO:0,BD:0,Pts:0};
+    });
+    // default teams for live panel
+    if (!current.teamA && TEAMS.length>=2){
+      setTeam('A', TEAMS[0].id);
+      setTeam('B', TEAMS[1].id);
+    }
+    renderStandings();
+    renderBracket();
+    renderFinished();
+  }catch(e){
+    console.error('loadTeams failed', e);
+  }
+}
+
+// =================== Tabs ===================
+function activateTab(key){
+  qa('#mainNav .pill').forEach(p=>p.classList.toggle('active', p.dataset.tab===key));
+  qa('main > section').forEach(sec=>sec.classList.toggle('hidden', !sec.id.endsWith(key)));
+  localStorage.setItem('skullball_tab', key);
+  if(key==='classement'){ activateSub(localStorage.getItem('skullball_sub')||'tableau'); }
+}
+function activateSub(k){
+  qa('.subnav .pill').forEach(p=>p.classList.toggle('active', p.dataset.sub===k));
+  el('classement-view').classList.toggle('hidden', k!=='tableau');
+  el('buteurs-view').classList.toggle('hidden', k!=='buteurs');
+  localStorage.setItem('skullball_sub', k);
+}
+
+document.addEventListener('click', (e)=>{
+  const t = e.target.closest('.pill');
+  if(t && t.dataset.tab){ activateTab(t.dataset.tab); }
+  const s = e.target.closest('.pill.sub');
+  if(s && s.dataset.sub){ activateSub(s.dataset.sub); }
+});
+
+// =================== Admin toggle ===================
+el('adminToggle').addEventListener('click', ()=>{
+  ADMIN_MODE = !ADMIN_MODE;
+  qa('.admin-only').forEach(n=>n.classList.toggle('hidden', !ADMIN_MODE));
+  el('adminToggle').classList.toggle('active', ADMIN_MODE);
+});
+qa('.admin-only').forEach(n=>n.classList.add('hidden'));
+
+// =================== Live match logic ===================
+let timerInt = null;
+function startTimer(){
+  if(current.running) return;
+  current.running = true;
+  current.startTs = Date.now() - (current.elapsed || 0);
+  timerInt = setInterval(()=>{
+    current.elapsed = Date.now()-current.startTs;
+    el('timer').textContent = formatTime(current.elapsed/1000);
+  }, 250);
+}
+function pauseTimer(){ if(timerInt){ clearInterval(timerInt); timerInt=null; } current.running=false; }
+function resetTimer(){ pauseTimer(); current.elapsed = 0; el('timer').textContent='00:00'; }
+
+el('playBtn').addEventListener('click', startTimer);
+el('pauseBtn').addEventListener('click', pauseTimer);
+el('resetBtn').addEventListener('click', resetTimer);
+
+function teamById(id){ return TEAMS.find(t=>t.id==id); }
+function setTeam(side, id){
+  if(!id){ return; }
+  id = Number(id);
+  if(side==='A'){
+    current.teamA=id;
+    el('teamAName').textContent = teamById(id)?.name || '—';
+    el('teamALogo').src = teamById(id)?.logo || '';
+    // players
+    const ps = (teamById(id)?.players||[]).map(p=>`<option value="{p}">{p}</option>`.replaceAll('{p}', p)).join('');
+    el('teamAPlayer').innerHTML = ps;
+  } else {
+    current.teamB=id;
+    el('teamBName').textContent = teamById(id)?.name || '—';
+    el('teamBLogo').src = teamById(id)?.logo || '';
+    const ps = (teamById(id)?.players||[]).map(p=>`<option value="{p}">{p}</option>`.replaceAll('{p}', p)).join('');
+    el('teamBPlayer').innerHTML = ps;
+  }
+}
+el('teamASelect').addEventListener('change', e=> setTeam('A', e.target.value));
+el('teamBSelect').addEventListener('change', e=> setTeam('B', e.target.value));
+
+function addGoal(side){
+  const stamp = formatTime((current.elapsed||0)/1000);
+  if(side==='A'){ current.scoreA++; el('scoreA').textContent=current.scoreA; const pl = el('teamAPlayer').value||'?'; current.events.push({side:'A', player:pl, t:stamp}); el('logA').textContent += ` + ${pl} (${stamp})`; }
+  if(side==='B'){ current.scoreB++; el('scoreB').textContent=current.scoreB; const pl = el('teamBPlayer').value||'??'; current.events.push({side:'B', player:pl, t:stamp}); el('logB').textContent += ` + ${pl} (${stamp})`; }
+}
+function subGoal(side){
+  if(side==='A' && current.scoreA>0){ current.scoreA--; el('scoreA').textContent=current.scoreA; }
+  if(side==='B' && current.scoreB>0){ current.scoreB--; el('scoreB').textContent=current.scoreB; }
+}
+el('addGoalA').addEventListener('click', ()=>addGoal('A'));
+el('addGoalB').addEventListener('click', ()=>addGoal('B'));
+el('subGoalA').addEventListener('click', ()=>subGoal('A'));
+el('subGoalB').addEventListener('click', ()=>subGoal('B'));
+el('swapBtn').addEventListener('click', ()=>{
+  const ta=current.teamA, tb=current.teamB;
+  setTeam('A', tb); setTeam('B', ta);
+});
+
+function finishMatch(){
+  pauseTimer();
+  if(!(current.teamA && current.teamB)) return alert('Sélectionne les deux équipes.');
+  const match = {
+    id: current.id, a: current.teamA, b: current.teamB,
+    ga: current.scoreA, gb: current.scoreB,
+    elapsed: Math.floor((current.elapsed||0)/1000),
+    events: current.events, ts: Date.now()
+  };
+  FINISHED_MATCHES.push(match);
+  localStorage.setItem('skullball_finished', JSON.stringify(FINISHED_MATCHES));
+  // update stats (simple football rules: 3/1/0; BO/BD non gérés ici)
+  const A = STATS[match.a], B = STATS[match.b];
+  A.J++; B.J++;
+  A.BP += match.ga; A.BC += match.gb; A.Diff = A.BP - A.BC;
+  B.BP += match.gb; B.BC += match.ga; B.Diff = B.BP - B.BC;
+  if(match.ga>match.gb){ A.G++; B.P++; A.Pts+=3; }
+  else if(match.gb>match.ga){ B.G++; A.P++; B.Pts+=3; }
+  else { A.N++; B.N++; A.Pts++; B.Pts++; }
+  renderStandings();
+  renderFinished();
+  // reset current
+  current = { teamA: current.teamA, teamB: current.teamB, scoreA:0, scoreB:0, events:[], startTs:null, running:false, id: genId() };
+  el('scoreA').textContent='0'; el('scoreB').textContent='0'; el('logA').textContent=''; el('logB').textContent=''; resetTimer();
+  el('matchId').textContent = 'ID ' + current.id;
+  alert('Match archivé.');
+}
+el('finishBtn').addEventListener('click', finishMatch);
+el('matchId').textContent = 'ID ' + current.id;
+
+// =================== Standings ===================
+function renderStandings(){
+  const rows = Object.entries(STATS).map(([id,s])=>({ id:Number(id), ...s, name: teamById(id)?.name||'?', logo: teamById(id)?.logo||'' }));
+  rows.sort((a,b)=> b.Pts - a.Pts || b.Diff - a.Diff || b.BP - a.BP || a.name.localeCompare(b.name));
+  const body = el('standingsBody'); body.innerHTML = '';
+  rows.forEach((r,idx)=>{
+    const tr = document.createElement('tr');
+    tr.className = idx<6 ? 'row-top' : 'row-regular';
+    tr.innerHTML = `
+      <td class="pos">{pos}</td>
+      <td><div class="team-cell"><img class="team-logo" src="{logo}" onerror="this.style.opacity=.25" alt=""><div>{name}</div></div></td>
+      <td>{J}</td><td>{G}</td><td>{N}</td><td>{P}</td>
+      <td>{BP}</td><td>{BC}</td><td>{Diff}</td><td>{BO}</td><td>{BD}</td><td><strong>{Pts}</strong></td>
+    `.replaceAll('{pos}', idx+1)
+     .replaceAll('{logo}', r.logo).replaceAll('{name}', r.name)
+     .replaceAll('{J}', r.J).replaceAll('{G}', r.G).replaceAll('{N}', r.N).replaceAll('{P}', r.P)
+     .replaceAll('{BP}', r.BP).replaceAll('{BC}', r.BC).replaceAll('{Diff}', r.Diff)
+     .replaceAll('{BO}', r.BO).replaceAll('{BD}', r.BD).replaceAll('{Pts}', r.Pts);
+    body.appendChild(tr);
+  });
+
+  // scorers from events in finished matches
+  const counts = new Map();
+  FINISHED_MATCHES.forEach(m=>{
+    m.events.forEach(ev=>{
+      const tid = ev.side==='A' ? m.a : m.b;
+      const tname = teamById(tid)?.name || '?';
+      const key = ev.player + '||' + tname;
+      counts.set(key, (counts.get(key)||0)+1);
+    });
+  });
+  const arr = Array.from(counts.entries()).map(([k,v])=>{
+    const [player,club] = k.split('||');
+    return {player, club, goals:v};
+  }).sort((a,b)=> b.goals-a.goals || a.player.localeCompare(b.player));
+  const sb = el('scorersBody'); sb.innerHTML='';
+  arr.forEach((it,idx)=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td class="pos">{i}</td><td>{p}</td><td>{c}</td><td><strong>{g}</strong></td>`
+      .replace('{i}', idx+1).replace('{p}', it.player).replace('{c}', it.club).replace('{g}', it.goals);
+    sb.appendChild(tr);
+  });
+}
+
+// =================== Finished list ===================
+function renderFinished(){
+  const box = el('finishedList'); box.innerHTML = '';
+  FINISHED_MATCHES.slice().reverse().forEach(m=>{
+    const a = teamById(m.a) || {name:'?', logo:''}, b = teamById(m.b) || {name:'?', logo:''};
+    const card = document.createElement('div');
+    card.className='match-card';
+    card.innerHTML = `
+      <div class="match-side"><img src="{alogo}" alt=""><span>{aname}</span></div>
+      <div class="match-score">{ga} – {gb}</div>
+      <div class="match-side" style="justify-content: flex-end;"><span>{bname}</span><img src="{blogo}" alt=""></div>
+    `.replace('{alogo}', a.logo).replace('{aname}', a.name)
+     .replace('{ga}', m.ga).replace('{gb}', m.gb)
+     .replace('{bname}', b.name).replace('{blogo}', b.logo);
+    box.appendChild(card);
+  });
+}
+
+// =================== Bracket (placeholder pairs from top standings) ===================
+function renderBracket(){
+  const rows = Object.entries(STATS).map(([id,s])=>({ id:Number(id), ...s, name: teamById(id)?.name||'?', logo: teamById(id)?.logo||'' }));
+  rows.sort((a,b)=> b.Pts - a.Pts || b.Diff - a.Diff || b.BP - a.BP || a.name.localeCompare(b.name));
+  const top8 = rows.slice(0,8);
+  const mk = (l, r)=> `<div class="pair"><div class="left"><img src="{ll}"><span>{ln}</span></div><div class="score">0</div><div class="right"><span>{rn}</span><img src="{rl}"></div></div>`
+      .replace('{ll}', l.logo).replace('{ln}', l.name).replace('{rn}', r.name).replace('{rl}', r.logo);
+  document.getElementById('barrages').innerHTML = top8.length>=8 ?
+    mk(top8[0], top8[7]) + mk(top8[3], top8[4]) : '<div class="small">Définir les équipes…</div>';
+  document.getElementById('demis').innerHTML = top8.length>=8 ?
+    mk(top8[1], top8[6]) + mk(top8[2], top8[5]) : '<div class="small">Définir les équipes…</div>';
+  const f1 = rows[0] || {logo:'',name:'—'};
+  const f2 = rows[1] || {logo:'',name:'—'};
+  document.getElementById('finale').innerHTML = mk(f1, f2);
+}
+
+// =================== Manage ===================
+document.getElementById('resetData').addEventListener('click', ()=>{
+  if(!confirm('Tout ré-initialiser (scores et matchs) ?')) return;
+  FINISHED_MATCHES = [];
+  localStorage.removeItem('skullball_finished');
+  // reset stats
+  Object.keys(STATS).forEach(id=> STATS[id] = {J:0,G:0,N:0,P:0,BP:0,BC:0,Diff:0,BO:0,BD:0,Pts:0} );
+  renderStandings(); renderFinished(); renderBracket();
+});
+document.getElementById('reloadTeams').addEventListener('click', loadTeams);
+
+// =================== Boot ===================
+document.querySelectorAll('#mainNav .pill').forEach(p=> p.addEventListener('click', ()=> activateTab(p.dataset.tab)));
+function boot(){
+  const savedTab = localStorage.getItem('skullball_tab') || 'classement';
+  activateTab(savedTab);
+  activateSub(localStorage.getItem('skullball_sub')||'tableau');
+  loadTeams();
+}
+boot();
+</script>
 </body>
 </html>
