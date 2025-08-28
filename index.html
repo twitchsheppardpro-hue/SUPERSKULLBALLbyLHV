@@ -144,6 +144,39 @@ button.primary{background:var(--accent);color:#2A1800;border:none}
 .admin-only{display:none}
 .admin-on .admin-only{display:block}
 </style>
+
+<!-- === THEME TRANSPLANT (V8.20) — GRAPHICS ONLY === -->
+<style id="theme_v820_overrides">
+:root{ --accent:#ff7b00 !important; }
+body{
+  background: linear-gradient(135deg,
+    #002654 0%, #002654 30%,
+    #ffffff 50%,
+    #CE1126 80%, #CE1126 100%) !important;
+  background-attachment: fixed !important;
+}
+/* Header gradient (V8.20) — ajuste le sélecteur selon V2 */
+header, header.head, .app-header{
+  background: linear-gradient(90deg,
+    rgba(0,38,84,0.92) 0%,  rgba(0,38,84,0.92) 30%,
+    rgba(255,255,255,0.22) 50%,
+    rgba(206,17,38,0.92) 80%, rgba(206,17,38,0.92) 100%) !important;
+}
+/* League logo 160x160 */
+.event-logo, .league-logo, .league-head img{
+  width:160px !important; height:160px !important; border-radius:14px !important;
+}
+/* Standings tiers (1–2 gold, 3–6 bronze @80%) */
+#standings tbody tr:nth-child(-n+2) td{ background-color: rgba(181,143,80,0.80) !important; }
+#standings tbody tr:nth-child(n+3):nth-child(-n+6) td{ background-color: rgba(152,121,75,0.80) !important; }
+/* fallback if tbody not used */
+#standings tr:nth-child(-n+2) td{ background-color: rgba(181,143,80,0.80) !important; }
+#standings tr:nth-child(n+3):nth-child(-n+6) td{ background-color: rgba(152,121,75,0.80) !important; }
+/* Pills actives sur accent */
+.pill.active, .chip.active, .badge.active{ background: var(--accent) !important; color:#1a1105 !important; border-color: transparent !important; }
+/* Bracket lisible (facultatif) */
+.bracket .match .team, .teamline{ font-size:16px !important; line-height:1.2 !important; }
+</style>
 </head>
 <body>
 <header class="head">
