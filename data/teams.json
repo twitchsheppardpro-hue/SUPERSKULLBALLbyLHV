@@ -11,7 +11,7 @@
     },
     {
       "id": 2,
-      "name": "Aviron Bayonnais",
+      "name": "Les Noctambules",
       "logo": "logos/equipe2.png",
       "color": "#202532",
       "players": ["Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6"]
