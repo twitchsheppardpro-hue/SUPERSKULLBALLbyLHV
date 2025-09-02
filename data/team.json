@@ -7,7 +7,7 @@
       "name": "Le Hollandais Violent",
       "logo": "logos/equipe1.png",
       "color": "#0f3e88",
-      "players": ["Sheppard", "Etagon", "Kz", "Lama", "Sqyze", "Skyllocks"]
+      "players": ["Sheppard", "Etagon", "Kz", "Lama", "Sqyze", "null"]
     },
     {
       "id": 2,
