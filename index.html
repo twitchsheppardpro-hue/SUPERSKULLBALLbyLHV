@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Skullball – Fusion V1 (V8.20) + V2 (V13)</title>
+<title>Skullball – V6 (fusion stable)</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -86,27 +86,26 @@ main{padding:22px 0 64px}
 /* Exact standings colors (V8.20 V8.8) */
 #standings tbody tr:nth-child(-n+2) td{ background-color: rgba(181,143,80,0.80) !important; } /* #b58f50 */
 #standings tbody tr:nth-child(n+3):nth-child(-n+6) td{ background-color: rgba(152,121,75,0.80) !important; } /* #98794b */
-/* ======= LIVE (V8.20 card layout) ======= */
+/* ======= LIVE (V1-like stable card) ======= */
 .live-list{display:grid;grid-template-columns:1fr;gap:14px}
-.match-card{border-radius:18px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.35);border:1px solid #252a39;background:#101725}
-.row{display:grid;grid-template-columns:96px 1fr auto 1fr 96px;align-items:center}
+.match-card{border-radius:18px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.35);border:1px solid #252a39;background:#101725;position:relative}
+.row{display:grid;grid-template-columns:120px 1fr 220px 1fr 120px;align-items:center}
 .cell{padding:14px 16px;background:linear-gradient(180deg,#111521,#0c0f18)}
 .cell.mid{background:linear-gradient(180deg,#151a26,#10141f); text-align:center}
 .badge{font-size:12px;color:#fff;background:rgba(255,255,255,.08);border:1px solid #2b3347;padding:6px 10px;border-radius:999px}
 .teamline{display:flex;align-items:center;gap:12px}
-.teamline img{width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid #30384b;background:#0e111a}
+.teamline img{width:72px;height:72px;border-radius:12px;object-fit:cover;border:2px solid #30384b;background:#0e111a}
 .teamline .name{font-weight:900;font-size:20px}
-.score{font-size:52px;font-weight:1000;letter-spacing:1px}
+.score{font-size:56px;font-weight:1000;letter-spacing:1px}
 .timer{display:inline-block;margin-top:6px;font-size:24px;font-weight:900;padding:6px 10px;border-radius:12px;border:1px solid #2b3347;background:rgba(255,255,255,.06)}
 .status{font-size:12px;font-weight:900;text-transform:uppercase;padding:6px 10px;border-radius:999px;border:1px solid #2b3347;background:rgba(255,255,255,.06)}
 /* background half logos */
-.row{position:relative}
-.bg-half{position:absolute;top:0;bottom:0;width:50%;background-repeat:no-repeat;background-position:center;background-size:70% auto;opacity:.06;filter:grayscale(100%);pointer-events:none;z-index:0}
+.bg-half{position:absolute;top:0;bottom:60px;width:50%;background-repeat:no-repeat;background-position:center;background-size:75% auto;opacity:.08;filter:grayscale(100%);pointer-events:none;z-index:0}
 .bg-half.left{left:0}
 .bg-half.right{right:0}
 .cell{position:relative;z-index:1}
 /* Lower black band controls */
-.footer{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#0b0f18;color:var(--muted);border-top:1px solid rgba(255,255,255,.10)}
+.footer{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;padding:12px 16px;background:#0b0f18;color:var(--muted);border-top:1px solid rgba(255,255,255,.10);position:relative;z-index:2}
 .controls{display:flex;gap:8px;flex-wrap:wrap}
 .mini{padding:8px 10px;border-radius:10px;border:1px solid rgba(255,255,255,.14);background:#122034;color:var(--ink);font-weight:800;cursor:pointer}
 .mini:hover{background:#182741}
@@ -124,7 +123,7 @@ main{padding:22px 0 64px}
 /* reuse .match-card compact */
 .finished-list .match-card .teamline img{width:40px;height:40px;border-radius:10px}
 .finished-list .match-card .score{font-size:36px}
-/* ======= PHASE FINALE (sous-onglet uniquement) ======= */
+/* ======= PHASE FINALE (sous-onglet) ======= */
 .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
 .bucket{background:#0E1520;border:1px solid rgba(255,255,255,.10);border-radius:16px;padding:12px}
 .bucket h3{margin:0 0 10px}
@@ -137,10 +136,8 @@ main{padding:22px 0 64px}
 .br-score{font-weight:900;padding:0 6px}
 .br-line.winner{background:linear-gradient(90deg,rgba(245,158,11,.20),rgba(245,158,11,.05))}
 /* ======= Admin badge & panel ======= */
-#adminBadge{display:inline-flex;align-items:center;gap:8px}
-#adminBadge .pill{height:32px}
 #adminPanel{margin-top:12px}
-.form{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
 .form label{font-size:13px;color:var(--muted)}
 .input, select{width:100%;padding:10px 12px;border-radius:12px;border:1px solid #2b3347;background:#151a24;color:var(--ink);font-size:15px}
 .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;background:#1f2430;border:1px solid #2b3344;color:var(--ink);cursor:pointer;font-weight:700}
@@ -160,7 +157,7 @@ main{padding:22px 0 64px}
       <button class="pill active" data-tab="classement">Classement</button>
       <button class="pill" data-tab="live">Matchs en direct</button>
       <button class="pill" data-tab="finished">Matchs terminés</button>
-      <!-- Phase finale retiré ici (présente en sous-onglet) -->
+      <!-- Phase finale retirée du top -->
     </nav>
     <div class="admin-btn">
       <button id="adminToggle" class="pill" title="Règles & options">Admin</button>
@@ -252,7 +249,7 @@ const isNullPlayer = (name) => {
   return ['null','nul','none','vide'].includes(s);
 };
 
-/* Mini button factory (fix for 'makeMini is not defined') */
+/* Mini button factory */
 function makeMini(label, onClick){
   const b = document.createElement('button');
   b.className = 'mini';
@@ -265,7 +262,7 @@ function makeMini(label, onClick){
 const state = {
   event:{ name:'Tournoi', logo:'' },
   teams:[], // {id,name,logo,color,players[<=6]}
-  schedule:[], // matches
+  schedule:[], // matches {id,day,a,b,status,scoreA,scoreB,goals[],forfeited,remaining,startTs}
   rules:{ duration:15, win:3, draw:1, loss:0, bonus:true, bonusThr:3, bonusPts:1 },
   standings:new Map(), // id->{played,win,draw,loss,gf,ga,pts}
   scorers:new Map(), // key teamId::player -> {player, teamId, goals}
@@ -274,6 +271,7 @@ function playerKey(teamId, player){ return teamId + '::' + player }
 
 /* ========= Data load ========= */
 async function loadData(){
+  // TEAMS
   const res = await fetch('data/team.json', {cache:'no-cache'});
   if(!res.ok){ throw new Error('data/team.json introuvable'); }
   const data = await res.json();
@@ -301,18 +299,47 @@ async function loadData(){
   state.standings.clear();
   state.teams.forEach(t=> state.standings.set(t.id, {played:0,win:0,draw:0,loss:0,gf:0,ga:0,pts:0}) );
 
-  // Generate single round-robin (phase aller)
-  state.schedule = generateRR(state.teams.map(t=>t.id)).map((p,idx)=>({
+  // GAMES (optional external file) -> data/games.json or data/teamGames.json
+  state.schedule = await loadGamesOrGenerate(state.teams.map(t=>t.id));
+
+  renderAll();
+}
+
+async function loadGamesOrGenerate(teamIds){
+  const tryFiles = ['data/games.json','data/teamGames.json'];
+  for(const url of tryFiles){
+    try{
+      const r = await fetch(url, {cache:'no-cache'});
+      if(r.ok){
+        const g = await r.json();
+        let games = g.games || g.matches || g || [];
+        // Normalize known shapes
+        games = games.map((m,i)=>{
+          const a = m.a || m.home || m.homeId || m.teamA || m.team1;
+          const b = m.b || m.away || m.awayId || m.teamB || m.team2;
+          const day = m.day || m.round || m.journee || 1;
+          return {
+            id: m.id || `${a}-${b}-${i+1}`,
+            day, a, b,
+            status:'upcoming', scoreA:0, scoreB:0,
+            goals:[], forfeited:null,
+            remaining: state.rules.duration*60, startTs:null
+          };
+        }).filter(m=> aIn(teamIds,m.a) && aIn(teamIds,m.b));
+        if(games.length) return games;
+      }
+    }catch(e){ /* ignore */ }
+  }
+  // Fallback: auto-generate single round robin
+  return generateRR(teamIds).map((p,idx)=>({
     id:`${p.a}-${p.b}-${idx+1}`,
-    day:p.day,
-    a:p.a, b:p.b,
+    day:p.day, a:p.a, b:p.b,
     status:'upcoming', scoreA:0, scoreB:0,
     goals:[], forfeited:null,
     remaining: state.rules.duration*60, startTs:null
   }));
-
-  renderAll();
 }
+function aIn(arr,v){ return arr.includes(v); }
 
 /* Round-robin (circle method) */
 function generateRR(ids){
@@ -650,7 +677,7 @@ function applyScorers(m){
   });
 }
 
-/* ========= Phase finale placeholders (sous-onglet) ========= */
+/* ========= Phase finale placeholders ========= */
 function buildBracketPlaceholders(){
   const make = (c,id)=>{ byId(id).innerHTML = c.map(x=>`
     <div class="br-match">
