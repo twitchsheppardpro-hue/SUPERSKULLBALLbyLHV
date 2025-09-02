@@ -22,8 +22,6 @@
   --ok:#22C55E;
   --danger:#EF4444;
 }
-
-/* Base */
 *{box-sizing:border-box}
 html,body{height:100%}
 body{
@@ -35,7 +33,6 @@ body{
 }
 .container{max-width:1600px;margin:0 auto;padding:0 16px}
 @media (min-width:1600px){ .container{ max-width:92vw } }
-
 /* Header (V13) */
 header.head{
   position:sticky;top:0;z-index:100;
@@ -52,7 +49,6 @@ header.head{
   box-shadow:0 8px 22px rgba(0,0,0,.35);
 }
 h1.title{margin:0;font-weight:800;font-size:22px;letter-spacing:.2px;text-shadow:0 2px 8px rgba(0,0,0,.35)}
-
 /* Nav pills (V13) */
 .nav{display:flex;gap:10px;flex-wrap:wrap}
 .pill{
@@ -66,7 +62,6 @@ h1.title{margin:0;font-weight:800;font-size:22px;letter-spacing:.2px;text-shadow
 .pill:hover{background:var(--pill-hover);transform:translateY(-1px)}
 .pill.active{background:var(--accent);color:#1a1105;border-color:transparent}
 .admin-btn{justify-self:end}
-
 /* Main */
 main{padding:22px 0 64px}
 .panel{
@@ -75,12 +70,10 @@ main{padding:22px 0 64px}
   border-radius:18px;padding:18px;box-shadow:0 10px 32px rgba(0,0,0,.35)
 }
 .caption{color:var(--muted);font-size:14px;margin-bottom:10px}
-
 /* Subnav (V13) */
 .subnav{display:flex;gap:8px;margin-bottom:12px}
 .subnav .pill{height:32px;padding:0 12px;border-radius:999px;background:#0F1723;border-color:#233046}
 .subnav .pill.active{background:var(--accent);color:#1a1105}
-
 /* ======= CLASSEMENT (V8.20 table look) ======= */
 .table{width:100%;border-collapse:collapse}
 .table thead th{
@@ -93,7 +86,6 @@ main{padding:22px 0 64px}
 /* Exact standings colors (V8.20 V8.8) */
 #standings tbody tr:nth-child(-n+2) td{ background-color: rgba(181,143,80,0.80) !important; } /* #b58f50 */
 #standings tbody tr:nth-child(n+3):nth-child(-n+6) td{ background-color: rgba(152,121,75,0.80) !important; } /* #98794b */
-
 /* ======= LIVE (V8.20 card layout) ======= */
 .live-list{display:grid;grid-template-columns:1fr;gap:14px}
 .match-card{border-radius:18px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.35);border:1px solid #252a39;background:#101725}
@@ -113,7 +105,6 @@ main{padding:22px 0 64px}
 .bg-half.left{left:0}
 .bg-half.right{right:0}
 .cell{position:relative;z-index:1}
-
 /* Lower black band controls */
 .footer{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#0b0f18;color:var(--muted);border-top:1px solid rgba(255,255,255,.10)}
 .controls{display:flex;gap:8px;flex-wrap:wrap}
@@ -123,11 +114,9 @@ main{padding:22px 0 64px}
 .players{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;min-width:260px}
 .players .btn{padding:8px 10px;border-radius:10px;border:1px solid rgba(255,255,255,.14);background:#0f1b2a;color:var(--ink);font-weight:800;cursor:pointer}
 .players .btn:hover{background:#12243a}
-
 /* Goal chips under team names */
 .scorers-strip{ display:inline-flex; gap:8px; flex-wrap:wrap; background:#0f1220; border:1px solid #2b3344; border-radius:8px; padding:6px 8px; margin-top:6px }
 .scorers-strip .chip{ background:#1a1f2f; border:1px solid #2b3344; border-radius:16px; padding:2px 8px; font-size:12px; color:#d6deff; }
-
 /* ======= FINISHED ======= */
 .filterbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
 .chip{padding:8px 10px;border-radius:999px;border:1px solid #2b3347;background:#1a1f2b;color:var(--ink);cursor:pointer}
@@ -135,7 +124,6 @@ main{padding:22px 0 64px}
 /* reuse .match-card compact */
 .finished-list .match-card .teamline img{width:40px;height:40px;border-radius:10px}
 .finished-list .match-card .score{font-size:36px}
-
 /* ======= PHASE FINALE ======= */
 .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
 .bucket{background:#0E1520;border:1px solid rgba(255,255,255,.10);border-radius:16px;padding:12px}
@@ -148,7 +136,6 @@ main{padding:22px 0 64px}
 .br-team img{width:26px;height:26px;border-radius:6px;border:1px solid rgba(255,255,255,.14)}
 .br-score{font-weight:900;padding:0 6px}
 .br-line.winner{background:linear-gradient(90deg,rgba(245,158,11,.20),rgba(245,158,11,.05))}
-
 /* ======= Admin badge & panel ======= */
 #adminBadge{display:inline-flex;align-items:center;gap:8px}
 #adminBadge .pill{height:32px}
@@ -285,17 +272,26 @@ const state = {
   standings:new Map(), // id->{played,win,draw,loss,gf,ga,pts}
   scorers:new Map(), // key teamId::player -> {player, teamId, goals}
 };
-
 function playerKey(teamId, player){ return teamId + '::' + player }
 
 /* ========= Data load ========= */
 async function loadData(){
-  const res = await fetch('team.json', {cache:'no-cache'});
-  if(!res.ok){ throw new Error('team.json introuvable'); }
+  const res = await fetch('data/team.json', {cache:'no-cache'});
+  if(!res.ok){ throw new Error('data/team.json introuvable'); }
   const data = await res.json();
-  state.event = data.event || state.event;
+
+  // Map both schemas:
+  // A) { event:{name,logo}, teams:[] }
+  // B) { leagueName, eventLogo, teams:[] }
+  state.event = {
+    name: (data.event && data.event.name) || data.leagueName || 'Tournoi',
+    logo: (data.event && data.event.logo) || data.eventLogo || ''
+  };
   state.teams = (data.teams||[]).map(t=>({
-    id:t.id, name:t.name, logo:t.logo||'', color:t.color||'#1a2535',
+    id: t.id || t.code || t.slug || t.name,
+    name: t.name || t.label || t.id,
+    logo: t.logo || '',
+    color: t.color || '#1a2535',
     players: Array.isArray(t.players) ? t.players.slice(0,6) : []
   }));
 
