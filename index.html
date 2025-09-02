@@ -124,7 +124,7 @@ main{padding:22px 0 64px}
 /* reuse .match-card compact */
 .finished-list .match-card .teamline img{width:40px;height:40px;border-radius:10px}
 .finished-list .match-card .score{font-size:36px}
-/* ======= PHASE FINALE ======= */
+/* ======= PHASE FINALE (sous-onglet uniquement) ======= */
 .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
 .bucket{background:#0E1520;border:1px solid rgba(255,255,255,.10);border-radius:16px;padding:12px}
 .bucket h3{margin:0 0 10px}
@@ -160,8 +160,7 @@ main{padding:22px 0 64px}
       <button class="pill active" data-tab="classement">Classement</button>
       <button class="pill" data-tab="live">Matchs en direct</button>
       <button class="pill" data-tab="finished">Matchs terminés</button>
-      <button class="pill" data-tab="knockout">Phase finale</button>
-      <!-- Gestion tab removed -->
+      <!-- Phase finale retiré ici (présente en sous-onglet) -->
     </nav>
     <div class="admin-btn">
       <button id="adminToggle" class="pill" title="Règles & options">Admin</button>
@@ -239,16 +238,6 @@ main{padding:22px 0 64px}
     <div id="finishedFilter" class="filterbar"></div>
     <div id="finishedList" class="finished-list live-list"></div>
   </section>
-
-  <!-- PHASE FINALE (alt view) -->
-  <section id="tab-knockout" class="panel hidden">
-    <div class="caption">Vue globale des phases finales.</div>
-    <div class="grid3">
-      <div class="bucket"><h3>Quarts</h3><div class="br-list" id="qf2"></div></div>
-      <div class="bucket"><h3>Demi-finales</h3><div class="br-list" id="sf2"></div></div>
-      <div class="bucket"><h3>Finale</h3><div class="br-list" id="fi2"></div></div>
-    </div>
-  </section>
 </main>
 
 <script>
@@ -262,6 +251,15 @@ const isNullPlayer = (name) => {
   const s = String(name).trim().toLowerCase().replace(/[^a-z]/g,'');
   return ['null','nul','none','vide'].includes(s);
 };
+
+/* Mini button factory (fix for 'makeMini is not defined') */
+function makeMini(label, onClick){
+  const b = document.createElement('button');
+  b.className = 'mini';
+  b.textContent = label;
+  if (onClick) b.addEventListener('click', onClick);
+  return b;
+}
 
 /* ========= State ========= */
 const state = {
@@ -343,7 +341,7 @@ function initNav(){
     $$('#mainNav .pill').forEach(x=>x.classList.remove('active'));
     b.classList.add('active');
     const tab = b.dataset.tab;
-    ['classement','live','finished','knockout'].forEach(t=>{
+    ['classement','live','finished'].forEach(t=>{
       byId(`tab-${t}`).classList.toggle('hidden', t!==tab);
     });
   });
@@ -516,15 +514,6 @@ function playersGrid(side, m, team, card){
     wrap.appendChild(b);
   });
   return wrap;
-
-/* Mini button factory (fix for 'makeMini is not defined') */
-function makeMini(label, onClick){
-  const b = document.createElement('button');
-  b.className = 'mini';
-  b.textContent = label;
-  if (onClick) b.addEventListener('click', onClick);
-  return b;
-}
 }
 
 /* Finished */
@@ -661,7 +650,7 @@ function applyScorers(m){
   });
 }
 
-/* ========= Phase finale placeholders ========= */
+/* ========= Phase finale placeholders (sous-onglet) ========= */
 function buildBracketPlaceholders(){
   const make = (c,id)=>{ byId(id).innerHTML = c.map(x=>`
     <div class="br-match">
@@ -680,7 +669,6 @@ function buildBracketPlaceholders(){
   const mockFI=[{a:'VD1', b:'VD2', sa:'-', sb:'-', winner:null}];
 
   make(mockQF,'qf'); make(mockSF,'sf'); make(mockFI,'fi');
-  make(mockQF,'qf2'); make(mockSF,'sf2'); make(mockFI,'fi2');
 }
 
 function teamById(id){ return state.teams.find(t=>t.id===id) }
