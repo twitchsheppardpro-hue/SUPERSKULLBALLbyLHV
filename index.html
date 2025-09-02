@@ -516,6 +516,15 @@ function playersGrid(side, m, team, card){
     wrap.appendChild(b);
   });
   return wrap;
+
+/* Mini button factory (fix for 'makeMini is not defined') */
+function makeMini(label, onClick){
+  const b = document.createElement('button');
+  b.className = 'mini';
+  b.textContent = label;
+  if (onClick) b.addEventListener('click', onClick);
+  return b;
+}
 }
 
 /* Finished */
