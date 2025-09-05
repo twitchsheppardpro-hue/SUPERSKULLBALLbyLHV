@@ -31,115 +31,40 @@ filename:index.html
     </header>
 
     <main class="container">
-        <!-- Error Banner -->
         <div id="error-banner" class="error-banner hidden">
-            <p>Erreur lors du chargement des données.</p>
+            <p>Erreur : Impossible de charger le fichier de données des équipes (team.json).</p>
             <button id="retry-fetch">Réessayer</button>
         </div>
 
-        <!-- Classement Tab -->
         <section id="tab-classement" class="tab-content active">
             <div class="sub-nav">
                 <button class="sub-pill active" data-sub-tab="classement-table">Classement</button>
                 <button class="sub-pill" data-sub-tab="playoffs">Phase Finale</button>
                 <button class="sub-pill" data-sub-tab="scorers">Buteur</button>
             </div>
-
-            <!-- Classement View -->
-            <div id="view-classement-table" class="sub-tab-content active">
-                <div class="panel">
-                    <p class="caption">Tri : Points ▸ Diff ▸ BP ▸ Confrontation directe.</p>
-                    <table class="standings-table">
-                        <thead>
-                            <tr>
-                                <th class="pos">#</th>
-                                <th class="team-col">Équipe</th>
-                                <th>J</th><th>G</th><th>N</th><th>P</th><th>BP</th><th>BC</th><th>Diff</th><th>BO</th><th>BD</th><th>Pts</th>
-                            </tr>
-                        </thead>
-                        <tbody id="standings-body"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Phase Finale View -->
-            <div id="view-playoffs" class="sub-tab-content">
-                 <div class="playoffs-grid">
-                    <!-- Les colonnes (Barrages, Demis, Finale) seront injectées ici -->
-                </div>
-            </div>
-
-            <!-- Buteurs View -->
-            <div id="view-scorers" class="sub-tab-content">
-                <div class="panel">
-                    <table class="scorers-table">
-                        <thead>
-                            <tr>
-                                <th class="pos">#</th>
-                                <th class="player-col">Joueur</th>
-                                <th class="club-col">Club</th>
-                                <th class="goals-col">Buts</th>
-                            </tr>
-                        </thead>
-                        <tbody id="scorers-body"></tbody>
-                    </table>
-                </div>
-            </div>
+            <div id="view-classement-table" class="sub-tab-content active"><div class="panel"><p class="caption">Tri : Points ▸ Diff ▸ BP ▸ Confrontation directe.</p><table class="standings-table"><thead><tr><th class="pos">#</th><th class="team-col">Équipe</th><th>J</th><th>G</th><th>N</th><th>P</th><th>BP</th><th>BC</th><th>Diff</th><th>BO</th><th>BD</th><th>Pts</th></tr></thead><tbody id="standings-body"></tbody></table></div></div>
+            <div id="view-playoffs" class="sub-tab-content"><div class="playoffs-grid"></div></div>
+            <div id="view-scorers" class="sub-tab-content"><div class="panel"><table class="scorers-table"><thead><tr><th class="pos">#</th><th class="player-col">Joueur</th><th class="club-col">Club</th><th class="goals-col">Buts</th></tr></thead><tbody id="scorers-body"></tbody></table></div></div>
         </section>
 
-        <!-- Match en direct Tab -->
-        <section id="tab-live" class="tab-content">
-            <div id="live-match-container">
-                <!-- La carte de match en direct sera injectée ici -->
-            </div>
-        </section>
+        <section id="tab-live" class="tab-content"><div id="live-match-container"></div></section>
 
-        <!-- Match terminé Tab -->
         <section id="tab-finished" class="tab-content">
-             <div class="sub-nav" id="finished-filters">
-                <!-- Filtres de journées/phases injectés ici -->
-            </div>
-            <div id="finished-list" class="finished-list">
-                <!-- Liste des matchs terminés injectée ici -->
-            </div>
+             <div class="sub-nav" id="finished-filters"></div>
+            <div id="finished-list" class="finished-list"></div>
         </section>
 
-        <!-- Admin Tab -->
         <section id="tab-admin" class="tab-content">
             <div class="panel admin-panel">
                 <h3>Règles & Options</h3>
                 <form id="rules-form" class="rules-form">
-                    <div class="form-group">
-                        <label>Points victoire</label>
-                        <input type="number" id="pts-win" value="3">
-                    </div>
-                    <div class="form-group">
-                        <label>Points nul</label>
-                        <input type="number" id="pts-draw" value="1">
-                    </div>
-                    <div class="form-group">
-                        <label>Points défaite</label>
-                        <input type="number" id="pts-loss" value="0">
-                    </div>
-                     <div class="form-group toggle-group">
-                        <label>Activer bonus</label>
-                        <select id="bonus-enabled">
-                            <option value="true">Oui</option>
-                            <option value="false">Non</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Seuil BO (écart ≥)</label>
-                        <input type="number" id="bo-margin" value="3">
-                    </div>
-                    <div class="form-group">
-                        <label>Seuil BD (défaite ≤)</label>
-                        <input type="number" id="bd-margin" value="1">
-                    </div>
-                     <div class="form-group">
-                        <label>Durée match (min)</label>
-                        <input type="number" id="match-duration" value="15">
-                    </div>
+                    <div class="form-group"><label>Points victoire</label><input type="number" id="pts-win"></div>
+                    <div class="form-group"><label>Points nul</label><input type="number" id="pts-draw"></div>
+                    <div class="form-group"><label>Points défaite</label><input type="number" id="pts-loss"></div>
+                    <div class="form-group toggle-group"><label>Activer bonus</label><select id="bonus-enabled"><option value="true">Oui</option><option value="false">Non</option></select></div>
+                    <div class="form-group"><label>Seuil BO (écart ≥)</label><input type="number" id="bo-margin"></div>
+                    <div class="form-group"><label>Seuil BD (défaite ≤)</label><input type="number" id="bd-margin"></div>
+                    <div class="form-group"><label>Durée match (min)</label><input type="number" id="match-duration"></div>
                 </form>
                 <div class="admin-actions">
                      <button id="generate-schedule-fallback" class="pill">Générer les matchs</button>
@@ -147,9 +72,8 @@ filename:index.html
                 </div>
             </div>
         </section>
-
     </main>
-
+    
     <script src="app.js"></script>
 </body>
 </html>
