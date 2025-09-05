@@ -1,249 +1,721 @@
-filename:app.js
+// filename:app.js
 document.addEventListener('DOMContentLoaded', () => {
-    const app = {
-        state: {
-            teams: [],
-            schedule: [],
-            results: {}, 
-            rules: { win: 3, draw: 1, loss: 0, bonus: true, boMargin: 3, bdMargin: 1, duration: 15 },
-            liveMatch: { id: null, timer: null, timeLeft: 900, status: 'upcoming', teamA: null, teamB: null, scoreA: 0, scoreB: 0, scorers: [] }
-        },
-        
-        init() {
-            this.loadState();
-            this.setupEventListeners();
-            this.fetchData();
-        },
-        
-        fetchData() {
-            fetch('./data/team.json')
-                .then(response => {
-                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                    return response.json();
-                })
-                .then(data => {
-                    this.state.teams = data.teams;
-                    this.state.liveMatch.timeLeft = this.state.rules.duration * 60;
-                    this.generateSchedule();
-                    this.renderAll();
-                    document.getElementById('error-banner').classList.add('hidden');
-                })
-                .catch(error => {
-                    console.error('Fetch error:', error);
-                    document.getElementById('error-banner').classList.remove('hidden');
-                });
-        },
+    const API = {
+        DATA_URL: './data/team.json',
+        STORAGE_KEY: 'skullball:v13',
+    };
 
-        saveState() {
-            localStorage.setItem('skullball:v1', JSON.stringify({ rules: this.state.rules, results: this.state.results }));
+    const state = {
+        teams: [],
+        schedule: [],
+        knockout: [],
+        results: {},
+        settings: {
+            points: { win: 3, draw: 1, loss: 0 },
+            bonus: { enabled: true, boThreshold: 3, bdThreshold: 1 },
+            matchDuration: 15,
+            forfeitScore: 3,
         },
+        liveMatch: {
+            id: null,
+            timerInterval: null,
+            remainingTime: 0,
+            homeScore: 0,
+            awayScore: 0,
+            homeLog: [],
+            awayLog: [],
+            status: 'upcoming' // upcoming, live, paused, finished
+        },
+    };
 
-        loadState() {
-            const savedState = JSON.parse(localStorage.getItem('skullball:v1'));
-            if (savedState) {
-                this.state.rules = { ...this.state.rules, ...savedState.rules };
-                this.state.results = savedState.results || {};
+    const dom = {
+        mainNav: document.querySelector('.main-nav'),
+        tabs: document.querySelectorAll('.tab-content'),
+        classementSubNav: document.querySelector('#tab-classement .sub-nav'),
+        subTabs: document.querySelectorAll('.sub-tab-content'),
+        standingsBody: document.getElementById('standings-body'),
+        scorersBody: document.getElementById('scorers-body'),
+        knockoutContainer: document.getElementById('knockout-grid-container'),
+        liveMatchCard: document.getElementById('live-match-card'),
+        liveMatchPlaceholder: document.getElementById('live-match-placeholder'),
+        finishedList: document.getElementById('finished-list'),
+        finishedFilters: document.getElementById('finished-filters'),
+        adminForm: document.getElementById('admin-form'),
+        errorBanner: document.getElementById('error-banner'),
+        retryFetchBtn: document.getElementById('retry-fetch'),
+    };
+
+    // --- INITIALIZATION ---
+    async function init() {
+        setupEventListeners();
+        loadState();
+        try {
+            await fetchData();
+            dom.errorBanner.hidden = true;
+        } catch (error) {
+            console.error("Failed to fetch initial data:", error);
+            dom.errorBanner.hidden = false;
+            return;
+        }
+        
+        if (!state.schedule || state.schedule.length === 0) {
+            generateSchedule();
+        }
+        if (!state.knockout || state.knockout.length === 0) {
+            generateKnockout();
+        }
+
+        renderAll();
+        // Activate default tab
+        showTab('classement');
+    }
+
+    // --- DATA & STATE MANAGEMENT ---
+    function loadState() {
+        const savedState = localStorage.getItem(API.STORAGE_KEY);
+        if (savedState) {
+            const parsed = JSON.parse(savedState);
+            // Merge saved state, but don't overwrite teams array which comes from JSON
+            state.schedule = parsed.schedule || [];
+            state.knockout = parsed.knockout || [];
+            state.results = parsed.results || {};
+            state.settings = parsed.settings || state.settings;
+        }
+        updateAdminForm();
+    }
+
+    function saveState() {
+        const stateToSave = { ...state, teams: undefined, liveMatch: undefined };
+        localStorage.setItem(API.STORAGE_KEY, JSON.stringify(stateToSave));
+    }
+
+    async function fetchData() {
+        const response = await fetch(API.DATA_URL);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const data = await response.json();
+        state.teams = data.teams;
+    }
+    
+    // --- EVENT LISTENERS ---
+    function setupEventListeners() {
+        dom.mainNav.addEventListener('click', handleTabNavigation);
+        dom.classementSubNav.addEventListener('click', handleSubTabNavigation);
+        dom.adminForm.addEventListener('change', () => saveSettings());
+        document.getElementById('save-settings').addEventListener('click', saveSettings);
+        document.getElementById('generate-schedule').addEventListener('click', () => { generateSchedule(); renderAll(); });
+        document.getElementById('generate-knockout').addEventListener('click', () => { generateKnockout(); renderAll(); });
+        document.getElementById('reset-app').addEventListener('click', resetApplication);
+        dom.finishedFilters.addEventListener('click', handleFinishedFilter);
+        dom.retryFetchBtn.addEventListener('click', init);
+        document.getElementById('standings-body').addEventListener('click', handleMatchSelection);
+    }
+    
+    // --- NAVIGATION ---
+    function handleTabNavigation(e) {
+        const pill = e.target.closest('.pill');
+        if (pill && pill.dataset.tab) {
+            showTab(pill.dataset.tab);
+        }
+    }
+
+    function showTab(tabId) {
+        dom.tabs.forEach(tab => tab.hidden = tab.id !== `tab-${tabId}`);
+        document.querySelectorAll('.main-nav .pill').forEach(p => {
+            p.classList.toggle('active', p.dataset.tab === tabId);
+        });
+        if(tabId === 'live' && !state.liveMatch.id) {
+            dom.liveMatchCard.hidden = true;
+            dom.liveMatchPlaceholder.hidden = false;
+        }
+    }
+
+    function handleSubTabNavigation(e) {
+        const pill = e.target.closest('.pill');
+        if (pill && pill.dataset.subTab) {
+            showSubTab(pill.dataset.subTab);
+        }
+    }
+
+    function showSubTab(subTabId) {
+        dom.subTabs.forEach(tab => tab.hidden = tab.id !== subTabId);
+        document.querySelectorAll('#tab-classement .sub-nav .pill').forEach(p => {
+            p.classList.toggle('active', p.dataset.subTab === subTabId);
+        });
+    }
+
+    function handleFinishedFilter(e) {
+        const pill = e.target.closest('.pill');
+        if (pill && pill.dataset.filter) {
+            document.querySelectorAll('#finished-filters .pill').forEach(p => p.classList.remove('active'));
+            pill.classList.add('active');
+            renderFinishedMatches(pill.dataset.filter);
+        }
+    }
+    
+    function handleMatchSelection(e) {
+        const matchRow = e.target.closest('[data-match-id]');
+        if(matchRow) {
+            const matchId = matchRow.dataset.matchId;
+            const isFinished = !!state.results[matchId];
+            if(!isFinished) {
+                startLiveMatch(matchId);
+                showTab('live');
             }
-        },
-        
-        setupEventListeners() {
-            document.querySelector('.main-nav').addEventListener('click', e => this.handleTabClick(e, '.pill', '.tab-content', document.querySelector('.main-nav')));
-            document.querySelector('.admin-pill').addEventListener('click', e => this.handleTabClick(e, '.pill', '.tab-content', document.querySelector('.main-nav')));
-            document.querySelector('#tab-classement .sub-nav').addEventListener('click', e => this.handleTabClick(e, '.sub-pill', '.sub-tab-content', document.querySelector('#tab-classement .sub-nav')));
-            document.getElementById('rules-form').addEventListener('change', () => this.updateRules());
-            document.getElementById('retry-fetch').addEventListener('click', () => this.fetchData());
-            document.getElementById('generate-schedule-fallback').addEventListener('click', () => { this.generateSchedule(); this.renderAll(); });
-            document.getElementById('generate-playoffs-fallback').addEventListener('click', () => this.renderPlayoffs());
-            document.getElementById('live-match-container').addEventListener('click', e => this.handleLiveMatchClick(e));
-        },
+        }
+    }
 
-        handleTabClick(e, pillSelector, contentSelector, navElement) {
-            if (e.target.closest(pillSelector)) {
-                const button = e.target.closest(pillSelector);
-                const tabId = button.dataset.tab || button.dataset.subTab;
-                navElement.querySelector('.active').classList.remove('active');
-                button.classList.add('active');
-                document.querySelectorAll(contentSelector).forEach(tab => tab.classList.toggle('active', tab.id.includes(tabId)));
-            }
-        },
+    // --- RENDERING ---
+    function renderAll() {
+        renderStandings();
+        renderScorers();
+        renderKnockout();
+        renderFinishedFilters();
+        renderFinishedMatches();
+    }
 
-        generateSchedule() {
-            const teams = [...this.state.teams];
-            if (teams.length === 0) return;
-            if (teams.length % 2 !== 0) teams.push({ id: 'bye', name: 'BYE' });
-            
-            this.state.schedule = [];
-            const rounds = teams.length - 1;
-            for (let i = 0; i < rounds; i++) {
-                const round = { day: i + 1, matches: [] };
-                for (let j = 0; j < teams.length / 2; j++) {
-                    const teamA = teams[j];
-                    const teamB = teams[teams.length - 1 - j];
-                    if (teamA.id !== 'bye' && teamB.id !== 'bye') {
-                        round.matches.push({ id: `d${i+1}m${j+1}`, teamAId: teamA.id, teamBId: teamB.id });
-                    }
+    function renderStandings() {
+        const stats = calculateStandings();
+        const sortedTeams = Object.values(stats).sort((a, b) => {
+            if (b.pts !== a.pts) return b.pts - a.pts;
+            if (b.diff !== a.diff) return b.diff - a.diff;
+            if (b.bp !== a.bp) return b.bp - a.bp;
+            return a.name.localeCompare(b.name);
+        });
+
+        dom.standingsBody.innerHTML = sortedTeams.map((s, index) => {
+            const match = findNextMatchForTeam(s.id);
+            return `
+                <tr data-match-id="${match ? match.id : ''}" ${!match || state.results[match.id] ? '' : 'style="cursor: pointer;"'}>
+                    <td>${index + 1}</td>
+                    <td>
+                        <div class="team-cell">
+                            <img src="${s.logo}" alt="${s.name} logo">
+                            <span>${s.name}</span>
+                        </div>
+                    </td>
+                    <td>${s.j}</td>
+                    <td>${s.g}</td>
+                    <td>${s.n}</td>
+                    <td>${s.p}</td>
+                    <td>${s.bp}</td>
+                    <td>${s.bc}</td>
+                    <td>${s.diff}</td>
+                    <td>${s.bo}</td>
+                    <td>${s.bd}</td>
+                    <td class="pts-cell">${s.pts}</td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    function renderScorers() {
+        const scorerStats = {};
+        Object.values(state.results).forEach(result => {
+            [...(result.aLog || []), ...(result.bLog || [])].forEach(goal => {
+                if (!scorerStats[goal.name]) {
+                    const playerTeam = state.teams.find(t => t.players.includes(goal.name));
+                    scorerStats[goal.name] = { name: goal.name, goals: 0, team: playerTeam };
                 }
-                this.state.schedule.push(round);
-                teams.splice(1, 0, teams.pop());
-            }
-             if (this.state.schedule.length > 0 && this.state.schedule[0].matches.length > 0) {
-                const firstMatchId = this.findNextMatchId();
-                this.setLiveMatch(firstMatchId);
-             }
-        },
-
-        renderAll() {
-            this.renderStandings();
-            this.renderPlayoffs();
-            this.renderScorers();
-            this.renderLiveMatch();
-            this.renderFinishedMatches();
-            this.renderAdminForm();
-        },
-
-        renderStandings() {
-            const body = document.getElementById('standings-body');
-            if (!body) return;
-            
-            const stats = this.calculateStandings();
-            stats.sort((a, b) => b.pts - a.pts || b.diff - a.diff || b.bp - a.bp || a.name.localeCompare(b.name));
-
-            body.innerHTML = stats.map((s, index) => {
-                let rankClass = '';
-                if (index < 2) rankClass = 'rank-gold';
-                else if (index < 6) rankClass = 'rank-bronze';
-                
-                return `<tr class="${rankClass}"><td class="pos">${index + 1}</td><td class="team-col"><div class="team-cell"><img src="${s.logo}" alt=""><span>${s.name}</span></div></td><td>${s.j}</td><td>${s.g}</td><td>${s.n}</td><td>${s.p}</td><td>${s.bp}</td><td>${s.bc}</td><td>${s.diff}</td><td>${s.bo}</td><td>${s.bd}</td><td class="pts"><b>${s.pts}</b></td></tr>`;
-            }).join('');
-        },
-
-        renderPlayoffs() { /* Simplified */ document.querySelector('.playoffs-grid').innerHTML = '<p class="caption">La phase finale sera affichée ici.</p>'; },
-        
-        renderScorers() {
-            const body = document.getElementById('scorers-body');
-            if (!body) return;
-            const allScorers = {};
-            Object.values(this.state.results).forEach(result => {
-                (result.scorers || []).forEach(scorer => {
-                    const p = this.getPlayerByName(scorer.teamId, scorer.name);
-                    const key = p ? p.name : scorer.name;
-                    if (!allScorers[key]) {
-                        allScorers[key] = { name: key, goals: 0, teamId: scorer.teamId };
-                    }
-                    allScorers[key].goals++;
-                });
+                scorerStats[goal.name].goals++;
             });
-            const sortedScorers = Object.values(allScorers).sort((a, b) => b.goals - a.goals);
-            body.innerHTML = sortedScorers.map((s, index) => {
-                const team = this.getTeamById(s.teamId);
-                return `<tr><td class="pos">${index + 1}</td><td class="player-col">${s.name}</td><td class="club-col"><img src="${team.logo}" alt="${team.name}"></td><td class="goals-col">${s.goals}</td></tr>`;
-            }).join('');
-        },
+        });
 
-        renderLiveMatch() {
-            const container = document.getElementById('live-match-container');
-            const { id, teamA, teamB, scoreA, scoreB, scorers, timeLeft, status } = this.state.liveMatch;
-            if (!id || !teamA || !teamB) {
-                container.innerHTML = '<div class="panel"><p>Aucun match en direct sélectionné.</p></div>'; return;
+        const sortedScorers = Object.values(scorerStats).sort((a, b) => b.goals - a.goals);
+        dom.scorersBody.innerHTML = sortedScorers.map((s, i) => `
+            <tr>
+                <td>${i + 1}</td>
+                <td>${s.name}</td>
+                <td class="club-cell">
+                    ${s.team ? `<img src="${s.team.logo}" class="club-logo" alt="${s.team.name}">` : ''}
+                </td>
+                <td>${s.goals}</td>
+            </tr>
+        `).join('');
+    }
+    
+    function renderKnockout() {
+        const standings = calculateStandings(true); // Get full standings for seeding
+        const knockoutHtml = {};
+        state.knockout.forEach(stage => {
+            if (!knockoutHtml[stage.type]) {
+                const title = { 'barrage': 'Barrages', 'demi': 'Demi-finales', 'finale': 'Finale' }[stage.type];
+                knockoutHtml[stage.type] = `<div class="knockout-round"><h3 class="round-title">${title}</h3>`;
             }
-            const day = this.findMatchDay(id);
-            const formatTime = s => `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
-            const renderP = t => (t.players || []).map(p => (!p || p.toLowerCase() === 'nul') ? '' : `<button class="player-btn" data-team-id="${t.id}" data-player="${p}">${p}</button>`).join('');
-            const renderS = side => scorers.filter(s => s.teamId === (side === 'A' ? teamA.id : teamB.id)).map(s => `${s.name} ${s.minute}'`).join(', ');
+            
+            const home = getTeam(stage.homeSeed ? standings[stage.homeSeed - 1]?.id : stage.homeId);
+            const away = getTeam(stage.awaySeed ? standings[stage.awaySeed - 1]?.id : stage.awayId);
+            const result = state.results[stage.id];
+            
+            let winnerClass = '';
+            if (result) {
+                if (result.homeGoals > result.awayGoals) winnerClass = 'winner';
+            }
 
-            container.innerHTML = `
-                <div class="live-card-wrapper">
-                    <div class="live-team-panel">
-                        <div class="live-team-header team-a"><img src="${teamA.logo}" alt="" class="logo"><span class="name">${teamA.name}</span></div>
-                        <div class="scorers-overlay">⚽ ${renderS('A')}</div>
-                        <div class="player-grid">${renderP(teamA)}</div>
-                        <div class="side-controls"><button class="minus-btn" data-action="remove-goal" data-team-side="A">-</button><button class="forfeit-btn" data-action="forfeit" data-team-side="A">F</button></div>
+            knockoutHtml[stage.type] += `
+                <div class="knockout-match ${winnerClass}" data-match-id="${stage.id}" ${!result ? 'style="cursor:pointer;"' : ''}>
+                    <div class="match-team">
+                        <div class="team-info">
+                            ${home ? `<img src="${home.logo}" alt=""><span>${home.name}</span>` : '<i>À déterminer</i>'}
+                        </div>
+                        <span class="team-score">${result ? result.homeGoals : '-'}</span>
                     </div>
-                    <div class="live-center-panel">
-                        <span class="live-status">${{upcoming: 'À VENIR', live: 'EN DIRECT', finished: 'TERMINÉ'}[status]}</span>
-                        <div class="live-score">${scoreA} - ${scoreB}</div>
-                        <div class="live-timer">${formatTime(timeLeft)}</div>
-                        <span class="live-day">Journée ${day}</span>
-                        <div class="live-controls"><div class="main-controls"><button data-action="play" aria-label="Play">▶</button><button data-action="pause" aria-label="Pause">❚❚</button><button data-action="reset" aria-label="Reset">↻</button></div><button class="finish-match-btn" data-action="finish">Match terminé</button></div>
+                    <div class="match-team">
+                        <div class="team-info">
+                            ${away ? `<img src="${away.logo}" alt=""><span>${away.name}</span>` : '<i>À déterminer</i>'}
+                        </div>
+                        <span class="team-score">${result ? result.awayGoals : '-'}</span>
                     </div>
-                    <div class="live-team-panel">
-                        <div class="live-team-header team-b"><span class="name">${teamB.name}</span><img src="${teamB.logo}" alt="" class="logo"></div>
-                        <div class="scorers-overlay">⚽ ${renderS('B')}</div>
-                        <div class="player-grid">${renderP(teamB)}</div>
-                        <div class="side-controls"><button class="minus-btn" data-action="remove-goal" data-team-side="B">-</button><button class="forfeit-btn" data-action="forfeit" data-team-side="B">F</button></div>
+                </div>
+            `;
+        });
+        Object.keys(knockoutHtml).forEach(key => knockoutHtml[key] += '</div>');
+        dom.knockoutContainer.innerHTML = Object.values(knockoutHtml).join('');
+        dom.knockoutContainer.removeEventListener('click', handleMatchSelection);
+        dom.knockoutContainer.addEventListener('click', handleMatchSelection);
+    }
+
+    function renderLiveMatchCard() {
+        const match = findMatchById(state.liveMatch.id);
+        if (!match) {
+            dom.liveMatchCard.hidden = true;
+            dom.liveMatchPlaceholder.hidden = false;
+            return;
+        }
+
+        const homeTeam = getTeam(match.homeId);
+        const awayTeam = getTeam(match.awayId);
+
+        const createPlayerButtons = (players) => 
+            players.map(p => (p && p.toLowerCase() !== 'nul') ? `<button class="player-btn" data-player="${p}">${p}</button>` : `<div></div>`).join('');
+
+        const createScorersLog = (log) => log.map(g => `<div class="scorer-entry">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15-3-3 1.41-1.41L11 14.17l5.59-5.59L18 10l-7 7z"></path></svg>
+            ${g.name} ${g.minute}'
+        </div>`).join('');
+        
+        const matchLabel = match.type === 'poule' ? `Journée ${match.round}` : { 'barrage': 'Barrage', 'demi': 'Demi-finale', 'finale': 'Finale' }[match.type];
+
+        dom.liveMatchCard.innerHTML = `
+            <div class="live-team-panel team-a">
+                <div class="team-bar" style="background-color: ${homeTeam.color || '#333'}">
+                    <div class="team-identity">
+                        <img src="${homeTeam.logo}" alt="${homeTeam.name}" class="team-bar-logo">
+                        <span class="team-bar-name">${homeTeam.name}</span>
+                    </div>
+                    <div class="scorers-log">${createScorersLog(state.liveMatch.homeLog)}</div>
+                </div>
+                <div class="player-pads" data-team="home">
+                    ${createPlayerButtons(homeTeam.players.slice(0, 3))}
+                    <button class="action-btn minus-btn" data-action="remove-goal" data-team="home">-</button>
+                    ${createPlayerButtons(homeTeam.players.slice(3, 5))}
+                    <button class="action-btn forfeit-btn" data-action="forfeit" data-team="home">F</button>
+                     ${createPlayerButtons(homeTeam.players.slice(5, 6))}
+                </div>
+            </div>
+
+            <div class="live-center-panel">
+                <div class="live-match-info">${matchLabel}</div>
+                <div class="live-status-pill">${state.liveMatch.status.toUpperCase()}</div>
+                <div class="live-score">${state.liveMatch.homeScore} - ${state.liveMatch.awayScore}</div>
+                <div class="live-timer">${formatTime(state.liveMatch.remainingTime)}</div>
+                <div class="live-controls">
+                    <div class="main-controls">
+                        <button data-action="play">▶</button>
+                        <button data-action="pause">⏸</button>
+                        <button data-action="reset">↻</button>
+                    </div>
+                    <button class="finish-btn" data-action="finish">Match terminé</button>
+                </div>
+            </div>
+
+            <div class="live-team-panel team-b">
+                <div class="team-bar" style="background-color: ${awayTeam.color || '#333'}">
+                    <div class="team-identity">
+                        <img src="${awayTeam.logo}" alt="${awayTeam.name}" class="team-bar-logo">
+                        <span class="team-bar-name">${awayTeam.name}</span>
+                    </div>
+                    <div class="scorers-log">${createScorersLog(state.liveMatch.awayLog)}</div>
+                </div>
+                <div class="player-pads" data-team="away">
+                    ${createPlayerButtons(awayTeam.players.slice(0, 3))}
+                    <button class="action-btn minus-btn" data-action="remove-goal" data-team="away">-</button>
+                    ${createPlayerButtons(awayTeam.players.slice(3, 5))}
+                    <button class="action-btn forfeit-btn" data-action="forfeit" data-team="away">F</button>
+                    ${createPlayerButtons(awayTeam.players.slice(5, 6))}
+                </div>
+            </div>
+        `;
+        dom.liveMatchCard.hidden = false;
+        dom.liveMatchPlaceholder.hidden = true;
+        
+        dom.liveMatchCard.removeEventListener('click', handleLiveMatchActions);
+        dom.liveMatchCard.addEventListener('click', handleLiveMatchActions);
+    }
+    
+    function renderFinishedMatches(filter = 'all') {
+        const finished = Object.values(state.results).reverse();
+        const filtered = finished.filter(m => {
+            if (filter === 'all') return true;
+            if (filter.startsWith('J')) return m.type === 'poule' && m.round == filter.slice(1);
+            return m.type === filter;
+        });
+
+        dom.finishedList.innerHTML = filtered.map(m => {
+            const home = getTeam(m.homeId);
+            const away = getTeam(m.awayId);
+            const scorerLog = (log) => log.map(g => `${g.name} ${g.minute}'`).join(', ');
+
+            return `
+                <div class="finished-card">
+                    <div class="finished-card-team team-a">
+                        <img src="${home.logo}" alt="">
+                        <span>${home.name}</span>
+                    </div>
+                    <div class="finished-card-score">${m.homeGoals} - ${m.awayGoals}</div>
+                    <div class="finished-card-team team-b">
+                        <img src="${away.logo}" alt="">
+                        <span>${away.name}</span>
+                    </div>
+                    <div class="finished-card-scorers">
+                        <span>${scorerLog(m.aLog)}</span>
+                        <span>${scorerLog(m.bLog)}</span>
                     </div>
                 </div>`;
-        },
+        }).join('');
+    }
+    
+    function renderFinishedFilters() {
+        const rounds = new Set(state.schedule.map(m => m.round));
+        const stages = new Set(state.knockout.map(m => m.type));
         
-        renderFinishedMatches() { /* ... */ },
-        renderAdminForm() { /* ... */ },
+        let filtersHTML = '<button class="pill active" data-filter="all">Tous</button>';
+        [...rounds].sort((a,b) => a-b).forEach(r => filtersHTML += `<button class="pill" data-filter="J${r}">J${r}</button>`);
+        ['barrage', 'demi', 'finale'].forEach(s => {
+            if(stages.has(s)) filtersHTML += `<button class="pill" data-filter="${s}">${s.charAt(0).toUpperCase() + s.slice(1)}</button>`
+        });
+        
+        dom.finishedFilters.innerHTML = filtersHTML;
+    }
 
-        handleLiveMatchClick(e) {
-            const button = e.target.closest('button');
-            if (!button) return;
-            const { action, player, teamId, teamSide } = button.dataset;
-            if (player) this.addGoal(teamId, player);
-            else if (action && typeof this[action] === 'function') this[action](teamSide);
-        },
-        
-        setLiveMatch(matchId) {
-            const match = this.findMatchById(matchId);
-            if (!match) return;
-            this.state.liveMatch = { id: matchId, teamA: this.getTeamById(match.teamAId), teamB: this.getTeamById(match.teamBId), scoreA: 0, scoreB: 0, scorers: [], timer: null, timeLeft: this.state.rules.duration * 60, status: 'upcoming' };
-            this.renderLiveMatch();
-        },
-        
-        play() {
-            if (this.state.liveMatch.timer || this.state.liveMatch.status === 'finished') return;
-            this.state.liveMatch.status = 'live';
-            this.state.liveMatch.timer = setInterval(() => {
-                if (this.state.liveMatch.timeLeft > 0) this.state.liveMatch.timeLeft--; else this.finish();
-                document.querySelector('.live-timer').textContent = `${String(Math.floor(this.state.liveMatch.timeLeft/60)).padStart(2,'0')}:${String(this.state.liveMatch.timeLeft%60).padStart(2,'0')}`;
-            }, 1000);
-            document.querySelector('.live-status').textContent = 'EN DIRECT';
-        },
-        pause() { clearInterval(this.state.liveMatch.timer); this.state.liveMatch.timer = null; },
-        reset() { this.pause(); this.state.liveMatch.timeLeft = this.state.rules.duration * 60; this.renderLiveMatch(); },
-        
-        addGoal(teamId, playerName) {
-            const minute = Math.floor((this.state.rules.duration * 60 - this.state.liveMatch.timeLeft) / 60);
-            this.state.liveMatch.scorers.push({ name: playerName, minute, teamId });
-            if (teamId == this.state.liveMatch.teamA.id) this.state.liveMatch.scoreA++; else this.state.liveMatch.scoreB++;
-            this.renderLiveMatch();
-        },
-        
-        removeGoal(teamSide) {
-             const teamIdToRemove = teamSide === 'A' ? this.state.liveMatch.teamA.id : this.state.liveMatch.teamB.id;
-             const lastGoalIndex = this.state.liveMatch.scorers.map(s => s.teamId).lastIndexOf(teamIdToRemove);
-             if (lastGoalIndex > -1) {
-                this.state.liveMatch.scorers.splice(lastGoalIndex, 1);
-                if (teamSide === 'A') this.state.liveMatch.scoreA--; else this.state.liveMatch.scoreB--;
-                this.renderLiveMatch();
-             }
-        },
-        
-        forfeit(teamSide) {
-            if (teamSide === 'A') { this.state.liveMatch.scoreA = 0; this.state.liveMatch.scoreB = 3; }
-            if (teamSide === 'B') { this.state.liveMatch.scoreA = 3; this.state.liveMatch.scoreB = 0; }
-            this.finish();
-        },
 
-        finish() {
-            this.pause();
-            this.state.liveMatch.status = 'finished';
-            this.state.results[this.state.liveMatch.id] = { ga: this.state.liveMatch.scoreA, gb: this.state.liveMatch.scoreB, scorers: this.state.liveMatch.scorers };
-            this.saveState();
-            this.renderAll();
-            const nextMatchId = this.findNextMatchId();
-            if (nextMatchId) this.setLiveMatch(nextMatchId); else this.state.liveMatch.id = null;
-            this.renderLiveMatch();
-        },
+    // --- LOGIC ---
+    function calculateStandings(includeKnockout = false) {
+        const stats = {};
+        state.teams.forEach(t => {
+            stats[t.id] = { id: t.id, name: t.name, logo: t.logo, j: 0, g: 0, n: 0, p: 0, bp: 0, bc: 0, diff: 0, bo: 0, bd: 0, pts: 0 };
+        });
+
+        const matchesToConsider = Object.values(state.results)
+            .filter(r => includeKnockout || r.type === 'poule');
+
+        matchesToConsider.forEach(m => {
+            const home = stats[m.homeId];
+            const away = stats[m.awayId];
+            if (!home || !away) return;
+            
+            home.j++; away.j++;
+            home.bp += m.homeGoals; away.bp += m.awayGoals;
+            home.bc += m.awayGoals; away.bc += m.homeGoals;
+
+            if (m.homeGoals > m.awayGoals) {
+                home.g++; away.p++;
+                home.pts += state.settings.points.win;
+                away.pts += state.settings.points.loss;
+                if (state.settings.bonus.enabled) {
+                    if (m.homeGoals - m.awayGoals >= state.settings.bonus.boThreshold) home.bo++;
+                    if (m.awayGoals - m.homeGoals <= state.settings.bonus.bdThreshold) away.bd++;
+                }
+            } else if (m.awayGoals > m.homeGoals) {
+                away.g++; home.p++;
+                away.pts += state.settings.points.win;
+                home.pts += state.settings.points.loss;
+                 if (state.settings.bonus.enabled) {
+                    if (m.awayGoals - m.homeGoals >= state.settings.bonus.boThreshold) away.bo++;
+                    if (m.homeGoals - m.awayGoals <= state.settings.bonus.bdThreshold) home.bd++;
+                }
+            } else {
+                home.n++; away.n++;
+                home.pts += state.settings.points.draw;
+                away.pts += state.settings.points.draw;
+            }
+        });
+
+        Object.values(stats).forEach(s => s.diff = s.bp - s.bc);
+        return stats;
+    }
+
+    function generateSchedule() {
+        const teams = [...state.teams];
+        if (teams.length < 2) return;
+        if (teams.length % 2 !== 0) {
+            teams.push({ id: 'bye', name: 'BYE' });
+        }
+
+        const schedule = [];
+        const numRounds = teams.length - 1;
+        for (let round = 0; round < numRounds; round++) {
+            for (let i = 0; i < teams.length / 2; i++) {
+                const home = teams[i];
+                const away = teams[teams.length - 1 - i];
+                if (home.id !== 'bye' && away.id !== 'bye') {
+                    schedule.push({
+                        id: `p_${round + 1}_${i + 1}`,
+                        round: round + 1,
+                        type: 'poule',
+                        homeId: home.id,
+                        awayId: away.id
+                    });
+                }
+            }
+            // Rotate teams
+            teams.splice(1, 0, teams.pop());
+        }
+        state.schedule = schedule;
+        saveState();
+    }
+    
+    function generateKnockout() {
+        const numTeams = state.teams.length;
+        state.knockout = [];
+
+        if (numTeams >= 6) {
+            state.knockout.push({id: 'k_b1', type: 'barrage', homeSeed: 3, awaySeed: 6});
+            state.knockout.push({id: 'k_b2', type: 'barrage', homeSeed: 4, awaySeed: 5});
+            state.knockout.push({id: 'k_s1', type: 'demi', homeSeed: 1, awayId: 'winner_k_b2'});
+            state.knockout.push({id: 'k_s2', type: 'demi', homeSeed: 2, awayId: 'winner_k_b1'});
+            state.knockout.push({id: 'k_f1', type: 'finale', homeId: 'winner_k_s1', awayId: 'winner_k_s2'});
+        } else if (numTeams >= 4) {
+             state.knockout.push({id: 'k_s1', type: 'demi', homeSeed: 1, awaySeed: 4});
+             state.knockout.push({id: 'k_s2', type: 'demi', homeSeed: 2, awaySeed: 3});
+             state.knockout.push({id: 'k_f1', type: 'finale', homeId: 'winner_k_s1', awayId: 'winner_k_s2'});
+        } else if (numTeams >= 2) {
+            state.knockout.push({id: 'k_f1', type: 'finale', homeSeed: 1, awaySeed: 2});
+        }
         
-        calculateStandings() {
-            const stats = {};
-            this.state.teams.forEach(t => { stats[t.id] = { id: t.id, name: t.name, logo: t.logo, j: 0, g: 0, n: 0, p: 0, bp: 0, bc: 0, diff: 0, bo: 0, bd: 0, pts: 0 }; });
-            this.state.schedule.forEach(round => round.matches.forEach(match => {
-                const result = this.state.results[match.id]; if (!result) return;
-                const { teamAId, teamBId } = match; const { ga, gb } = result;
-                const sA = stats[teamAId]; const sB = stats[teamBId];
-                sA.j++; sB.j++; sA.bp += ga; sB.bp += gb
+        // Resolve winner dependencies
+        state.knockout.forEach(match => {
+            if(String(match.homeId).startsWith('winner_')) {
+                const sourceMatchId = match.homeId.replace('winner_','');
+                const sourceResult = state.results[sourceMatchId];
+                if(sourceResult) {
+                    match.homeId = sourceResult.homeGoals > sourceResult.awayGoals ? sourceResult.homeId : sourceResult.awayId;
+                } else {
+                    match.homeId = null; // not determined yet
+                }
+            }
+             if(String(match.awayId).startsWith('winner_')) {
+                const sourceMatchId = match.awayId.replace('winner_','');
+                const sourceResult = state.results[sourceMatchId];
+                if(sourceResult) {
+                    match.awayId = sourceResult.homeGoals > sourceResult.awayGoals ? sourceResult.homeId : sourceResult.awayId;
+                } else {
+                    match.awayId = null;
+                }
+            }
+        });
+        saveState();
+    }
+
+
+    // --- LIVE MATCH ---
+    function startLiveMatch(matchId) {
+        if (state.liveMatch.timerInterval) clearInterval(state.liveMatch.timerInterval);
+
+        state.liveMatch = {
+            id: matchId,
+            timerInterval: null,
+            remainingTime: state.settings.matchDuration * 60,
+            homeScore: 0,
+            awayScore: 0,
+            homeLog: [],
+            awayLog: [],
+            status: 'upcoming'
+        };
+        renderLiveMatchCard();
+    }
+
+    function handleLiveMatchActions(e) {
+        const target = e.target.closest('button');
+        if (!target) return;
+
+        const action = target.dataset.action;
+        const teamSide = target.dataset.team;
+        const playerName = target.dataset.player;
+
+        if (playerName) {
+            addGoal(teamSide, playerName);
+        } else if (action) {
+            switch (action) {
+                case 'play':
+                    if (state.liveMatch.status !== 'live') {
+                       state.liveMatch.status = 'live';
+                       state.liveMatch.timerInterval = setInterval(timerTick, 1000);
+                    }
+                    break;
+                case 'pause':
+                    if (state.liveMatch.status === 'live') {
+                       state.liveMatch.status = 'paused';
+                       clearInterval(state.liveMatch.timerInterval);
+                    }
+                    break;
+                case 'reset':
+                    clearInterval(state.liveMatch.timerInterval);
+                    startLiveMatch(state.liveMatch.id);
+                    break;
+                case 'finish':
+                    finishMatch();
+                    break;
+                case 'remove-goal':
+                    removeLastGoal(teamSide);
+                    break;
+                case 'forfeit':
+                    forfeitMatch(teamSide);
+                    break;
+            }
+            renderLiveMatchCard();
+        }
+    }
+
+    function timerTick() {
+        state.liveMatch.remainingTime--;
+        if (state.liveMatch.remainingTime <= 0) {
+            state.liveMatch.remainingTime = 0;
+            finishMatch();
+        }
+        document.querySelector('.live-timer').textContent = formatTime(state.liveMatch.remainingTime);
+    }
+    
+    function addGoal(teamSide, playerName) {
+        const totalDuration = state.settings.matchDuration * 60;
+        const elapsedSeconds = totalDuration - state.liveMatch.remainingTime;
+        const minute = Math.floor(elapsedSeconds / 60) + 1;
+        
+        if (teamSide === 'home') {
+            state.liveMatch.homeScore++;
+            state.liveMatch.homeLog.push({ name: playerName, minute });
+        } else {
+            state.liveMatch.awayScore++;
+            state.liveMatch.awayLog.push({ name: playerName, minute });
+        }
+        renderLiveMatchCard();
+    }
+    
+    function removeLastGoal(teamSide) {
+        if (teamSide === 'home' && state.liveMatch.homeScore > 0) {
+            state.liveMatch.homeScore--;
+            state.liveMatch.homeLog.pop();
+        } else if (teamSide === 'away' && state.liveMatch.awayScore > 0) {
+            state.liveMatch.awayScore--;
+            state.liveMatch.awayLog.pop();
+        }
+        renderLiveMatchCard();
+    }
+
+    function finishMatch(forfeitData = null) {
+        clearInterval(state.liveMatch.timerInterval);
+        state.liveMatch.status = 'finished';
+        
+        const match = findMatchById(state.liveMatch.id);
+        const result = {
+            id: match.id,
+            type: match.type,
+            round: match.round,
+            homeId: match.homeId,
+            awayId: match.awayId,
+            homeGoals: forfeitData ? forfeitData.homeScore : state.liveMatch.homeScore,
+            awayGoals: forfeitData ? forfeitData.awayScore : state.liveMatch.awayScore,
+            aLog: state.liveMatch.homeLog,
+            bLog: state.liveMatch.awayLog,
+            forfeit: forfeitData ? forfeitData.forfeitingTeam : null
+        };
+        
+        state.results[match.id] = result;
+        state.liveMatch.id = null; // Clear live match
+        
+        saveState();
+        generateKnockout(); // re-resolve dependencies
+        renderAll();
+        
+        showTab('finished');
+    }
+    
+    function forfeitMatch(forfeitingTeam) {
+        const forfeitScore = state.settings.forfeitScore;
+        const forfeitData = {
+            forfeitingTeam: forfeitingTeam,
+            homeScore: forfeitingTeam === 'home' ? 0 : forfeitScore,
+            awayScore: forfeitingTeam === 'away' ? 0 : forfeitScore
+        };
+        finishMatch(forfeitData);
+    }
+
+    // --- ADMIN ---
+    function saveSettings() {
+        state.settings = {
+            points: {
+                win: parseInt(document.getElementById('points-win').value),
+                draw: parseInt(document.getElementById('points-draw').value),
+                loss: parseInt(document.getElementById('points-loss').value),
+            },
+            bonus: {
+                enabled: document.getElementById('bonus-enabled').value === 'true',
+                boThreshold: parseInt(document.getElementById('bo-threshold').value),
+                bdThreshold: parseInt(document.getElementById('bd-threshold').value),
+            },
+            matchDuration: parseInt(document.getElementById('match-duration').value),
+            forfeitScore: parseInt(document.getElementById('forfeit-score').value),
+        };
+        saveState();
+        renderStandings(); // Recalculate with new rules
+        alert('Règles sauvegardées !');
+    }
+    
+    function updateAdminForm() {
+        document.getElementById('points-win').value = state.settings.points.win;
+        document.getElementById('points-draw').value = state.settings.points.draw;
+        document.getElementById('points-loss').value = state.settings.points.loss;
+        document.getElementById('bonus-enabled').value = state.settings.bonus.enabled;
+        document.getElementById('bo-threshold').value = state.settings.bonus.boThreshold;
+        document.getElementById('bd-threshold').value = state.settings.bonus.bdThreshold;
+        document.getElementById('match-duration').value = state.settings.matchDuration;
+        document.getElementById('forfeit-score').value = state.settings.forfeitScore;
+    }
+    
+    function resetApplication() {
+        if (confirm("Êtes-vous sûr de vouloir réinitialiser tout le tournoi ? Cette action est irréversible.")) {
+            localStorage.removeItem(API.STORAGE_KEY);
+            // Reset state object to defaults without reloading the page
+            state.schedule = [];
+            state.knockout = [];
+            state.results = {};
+            // Keep default settings
+            generateSchedule();
+            generateKnockout();
+            renderAll();
+            alert("Tournoi réinitialisé.");
+        }
+    }
+
+
+    // --- UTILS ---
+    function getTeam(id) {
+        return state.teams.find(t => t.id === id);
+    }
+    
+    function findMatchById(id) {
+        return [...state.schedule, ...state.knockout].find(m => m.id === id);
+    }
+    
+    function findNextMatchForTeam(teamId) {
+        return state.schedule.find(m => (m.homeId === teamId || m.awayId === teamId) && !state.results[m.id]);
+    }
+
+    function formatTime(seconds) {
+        const min = Math.floor(seconds / 60);
+        const sec = seconds % 60;
+        return `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+    }
+
+    // --- START ---
+    init();
+});
