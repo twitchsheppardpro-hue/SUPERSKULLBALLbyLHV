@@ -1,79 +1,143 @@
-filename:index.html
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Skullball Tournament</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-
-    <header class="header">
-        <div class="header-content">
-            <img src="./logos/logoevent.png" alt="Logo Événement" class="event-logo">
-            <nav class="main-nav">
-                <button class="pill active" data-tab="classement">Classement</button>
-                <button class="pill" data-tab="live">Match en direct</button>
-                <button class="pill" data-tab="finished">Match terminé</button>
-            </nav>
-            <button class="pill admin-pill" data-tab="admin">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                </svg>
+<header class="main-header">
+    <div class="header-container">
+        <div class="header-left">
+            <img src="./logos/logoevent.png" alt="Logo de l'événement" class="event-logo">
+        </div>
+        <nav class="main-nav">
+            <button class="pill active" data-tab="classement">Classement</button>
+            <button class="pill" data-tab="live">Matchs en direct</button>
+            <button class="pill" data-tab="finished">Matchs terminés</button>
+        </nav>
+        <div class="header-right">
+            <button class="pill" data-tab="admin" id="admin-pill">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
                 Admin
             </button>
         </div>
-    </header>
+    </div>
+</header>
 
-    <main class="container">
-        <div id="error-banner" class="error-banner hidden">
-            <p>Erreur : Impossible de charger le fichier de données des équipes (team.json).</p>
-            <button id="retry-fetch">Réessayer</button>
+<main class="main-container">
+    <!-- Onglet Classement -->
+    <section id="tab-classement" class="tab-content">
+        <nav class="sub-nav">
+            <button class="pill active" data-sub-tab="standings-view">Classement</button>
+            <button class="pill" data-sub-tab="knockout-view">Phase Finale</button>
+            <button class="pill" data-sub-tab="scorers-view">Buteur</button>
+        </nav>
+        <div id="standings-view" class="sub-tab-content">
+            <div class="panel">
+                <div class="panel-header">Tri: Points ▶︎ Diff ▶︎ BP ▶︎ Confrontation directe.</div>
+                <table class="standings-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Équipe</th>
+                            <th>J</th>
+                            <th>G</th>
+                            <th>N</th>
+                            <th>P</th>
+                            <th>BP</th>
+                            <th>BC</th>
+                            <th>Diff</th>
+                            <th>BO</th>
+                            <th>BD</th>
+                            <th>Pts</th>
+                        </tr>
+                    </thead>
+                    <tbody id="standings-body"></tbody>
+                </table>
+            </div>
         </div>
-
-        <section id="tab-classement" class="tab-content active">
-            <div class="sub-nav">
-                <button class="sub-pill active" data-sub-tab="classement-table">Classement</button>
-                <button class="sub-pill" data-sub-tab="playoffs">Phase Finale</button>
-                <button class="sub-pill" data-sub-tab="scorers">Buteur</button>
+        <div id="knockout-view" class="sub-tab-content" hidden>
+             <div class="knockout-grid" id="knockout-grid-container">
+                <!-- Généré par JS -->
+             </div>
+        </div>
+        <div id="scorers-view" class="sub-tab-content" hidden>
+            <div class="panel">
+                <table class="scorers-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Joueur</th>
+                            <th>Club</th>
+                            <th>Buts</th>
+                        </tr>
+                    </thead>
+                    <tbody id="scorers-body"></tbody>
+                </table>
             </div>
-            <div id="view-classement-table" class="sub-tab-content active"><div class="panel"><p class="caption">Tri : Points ▸ Diff ▸ BP ▸ Confrontation directe.</p><table class="standings-table"><thead><tr><th class="pos">#</th><th class="team-col">Équipe</th><th>J</th><th>G</th><th>N</th><th>P</th><th>BP</th><th>BC</th><th>Diff</th><th>BO</th><th>BD</th><th>Pts</th></tr></thead><tbody id="standings-body"></tbody></table></div></div>
-            <div id="view-playoffs" class="sub-tab-content"><div class="playoffs-grid"></div></div>
-            <div id="view-scorers" class="sub-tab-content"><div class="panel"><table class="scorers-table"><thead><tr><th class="pos">#</th><th class="player-col">Joueur</th><th class="club-col">Club</th><th class="goals-col">Buts</th></tr></thead><tbody id="scorers-body"></tbody></table></div></div>
-        </section>
+        </div>
+    </section>
 
-        <section id="tab-live" class="tab-content"><div id="live-match-container"></div></section>
+    <!-- Onglet Matchs en direct -->
+    <section id="tab-live" class="tab-content" hidden>
+        <div id="live-match-placeholder">Sélectionnez un match à jouer depuis l'onglet "Classement".</div>
+        <div id="live-match-card" class="live-card" hidden>
+            <!-- Structure générée par JS -->
+        </div>
+    </section>
 
-        <section id="tab-finished" class="tab-content">
-             <div class="sub-nav" id="finished-filters"></div>
-            <div id="finished-list" class="finished-list"></div>
-        </section>
+    <!-- Onglet Matchs terminés -->
+    <section id="tab-finished" class="tab-content" hidden>
+        <nav class="sub-nav" id="finished-filters">
+            <!-- Filtres générés par JS -->
+        </nav>
+        <div id="finished-list" class="finished-list">
+            <!-- Cartes générées par JS -->
+        </div>
+    </section>
 
-        <section id="tab-admin" class="tab-content">
-            <div class="panel admin-panel">
-                <h3>Règles & Options</h3>
-                <form id="rules-form" class="rules-form">
-                    <div class="form-group"><label>Points victoire</label><input type="number" id="pts-win"></div>
-                    <div class="form-group"><label>Points nul</label><input type="number" id="pts-draw"></div>
-                    <div class="form-group"><label>Points défaite</label><input type="number" id="pts-loss"></div>
-                    <div class="form-group toggle-group"><label>Activer bonus</label><select id="bonus-enabled"><option value="true">Oui</option><option value="false">Non</option></select></div>
-                    <div class="form-group"><label>Seuil BO (écart ≥)</label><input type="number" id="bo-margin"></div>
-                    <div class="form-group"><label>Seuil BD (défaite ≤)</label><input type="number" id="bd-margin"></div>
-                    <div class="form-group"><label>Durée match (min)</label><input type="number" id="match-duration"></div>
-                </form>
-                <div class="admin-actions">
-                     <button id="generate-schedule-fallback" class="pill">Générer les matchs</button>
-                     <button id="generate-playoffs-fallback" class="pill">Générer les phases finales</button>
+    <!-- Onglet Admin -->
+    <section id="tab-admin" class="tab-content" hidden>
+        <div class="panel admin-panel">
+            <h3>Règles & Options</h3>
+            <form id="admin-form" class="admin-form">
+                <div class="form-group">
+                    <label>Points Victoire</label>
+                    <input type="number" id="points-win" value="3">
                 </div>
+                <div class="form-group">
+                    <label>Points Nul</label>
+                    <input type="number" id="points-draw" value="1">
+                </div>
+                <div class="form-group">
+                    <label>Points Défaite</label>
+                    <input type="number" id="points-loss" value="0">
+                </div>
+                <div class="form-group">
+                    <label>Activer Bonus</label>
+                    <select id="bonus-enabled">
+                        <option value="true">Oui</option>
+                        <option value="false">Non</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Seuil BO (écart ≥)</label>
+                    <input type="number" id="bo-threshold" value="3">
+                </div>
+                <div class="form-group">
+                    <label>Seuil BD (défaite par ≤)</label>
+                    <input type="number" id="bd-threshold" value="1">
+                </div>
+                <div class="form-group">
+                    <label>Durée Match (min)</label>
+                    <input type="number" id="match-duration" value="15">
+                </div>
+                <div class="form-group">
+                    <label>Score Forfait (perte)</label>
+                    <input type="number" id="forfeit-score" value="3">
+                </div>
+            </form>
+            <div class="admin-actions">
+                 <button id="save-settings" class="btn-primary">Sauvegarder les règles</button>
+                 <button id="generate-schedule" class="btn-secondary">Générer le calendrier</button>
+                 <button id="generate-knockout" class="btn-secondary">Générer les phases finales</button>
+                 <button id="reset-app" class="btn-danger">Réinitialiser le tournoi</button>
             </div>
-        </section>
-    </main>
-    
-    <script src="app.js"></script>
-</body>
-</html>
+        </div>
+    </section>
+</main>
+
+<script src="app.js"></script>
