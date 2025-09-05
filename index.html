@@ -83,9 +83,14 @@
 
         <!-- Onglet Matchs en direct -->
         <section id="tab-live" class="tab-content" hidden>
-            <div id="live-match-placeholder" class="panel">Sélectionnez un match à jouer depuis l'onglet Classement.</div>
             <div id="live-match-card" class="live-card" hidden>
-                <!-- Structure générée par JS pour être pixel-perfect -->
+                <!-- La grande carte de match en direct est injectée ici par le JS -->
+            </div>
+            <div id="upcoming-matches-container" class="panel">
+                 <h3 class="upcoming-matches-title">Matchs à jouer</h3>
+                 <div id="upcoming-matches-list">
+                     <!-- La liste des matchs à venir est injectée ici -->
+                 </div>
             </div>
         </section>
 
