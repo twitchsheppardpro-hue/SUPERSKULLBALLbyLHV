@@ -37,15 +37,14 @@ document.addEventListener('DOMContentLoaded', () => {
         scorersBody: document.getElementById('scorers-body'),
         knockoutContainer: document.getElementById('knockout-container'),
         liveMatchCard: document.getElementById('live-match-card'),
-        liveMatchPlaceholder: document.getElementById('live-match-placeholder'),
+        upcomingMatchesContainer: document.getElementById('upcoming-matches-container'),
+        upcomingMatchesList: document.getElementById('upcoming-matches-list'),
         finishedList: document.getElementById('finished-list'),
         finishedFilters: document.getElementById('finished-filters'),
-        adminForm: document.getElementById('admin-form'),
         errorBanner: document.getElementById('error-banner'),
         retryFetchBtn: document.getElementById('retry-fetch'),
     };
 
-    // --- INITIALIZATION ---
     async function init() {
         setupEventListeners();
         loadState();
@@ -58,14 +57,13 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         
-        if (!state.schedule || state.schedule.length === 0) generateSchedule();
-        if (!state.knockout || state.knockout.length === 0) generateKnockout();
+        if (!state.schedule.length) generateSchedule();
+        if (!state.knockout.length) generateKnockout();
 
         renderAll();
         showTab('classement');
     }
 
-    // --- DATA & STATE MANAGEMENT ---
     function loadState() {
         try {
             const savedState = localStorage.getItem(API.STORAGE_KEY);
@@ -76,9 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 state.results = parsed.results || {};
                 state.settings = { ...state.settings, ...parsed.settings };
             }
-        } catch (e) {
-            console.error("Could not load state from localStorage", e);
-        }
+        } catch (e) { console.error("Could not load state", e); }
         updateAdminForm();
     }
 
@@ -99,7 +95,6 @@ document.addEventListener('DOMContentLoaded', () => {
         state.teams = data.teams;
     }
     
-    // --- EVENT LISTENERS & NAVIGATION ---
     function setupEventListeners() {
         dom.mainNav.addEventListener('click', e => handleNavigation(e, 'tab', showTab));
         dom.classementSubNav.addEventListener('click', e => handleNavigation(e, 'sub-tab', showSubTab));
@@ -109,20 +104,29 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('generate-knockout').addEventListener('click', () => { generateKnockout(true); renderAll(); });
         document.getElementById('reset-app').addEventListener('click', resetApplication);
         dom.retryFetchBtn.addEventListener('click', init);
-        document.body.addEventListener('click', handleMatchSelection);
+        dom.upcomingMatchesList.addEventListener('click', handleMatchSelection);
+        dom.knockoutContainer.addEventListener('click', handleMatchSelection);
     }
     
     function handleNavigation(e, dataAttr, showFn) {
         const pill = e.target.closest('.pill');
         if (pill && pill.dataset[dataAttr]) {
             const parentNav = pill.closest('nav');
-            parentNav.querySelector('.active').classList.remove('active');
+            parentNav.querySelector('.active')?.classList.remove('active');
             pill.classList.add('active');
             showFn(pill.dataset[dataAttr]);
         }
     }
 
-    function showTab(tabId) { dom.tabs.forEach(tab => tab.hidden = tab.id !== `tab-${tabId}`); }
+    function showTab(tabId) {
+        dom.tabs.forEach(tab => tab.hidden = tab.id !== `tab-${tabId}`);
+        if (tabId === 'live') {
+            renderUpcomingMatches();
+            const isMatchLive = state.liveMatch.id !== null;
+            dom.liveMatchCard.hidden = !isMatchLive;
+            dom.upcomingMatchesContainer.hidden = isMatchLive;
+        }
+    }
     function showSubTab(subTabId) { dom.subTabs.forEach(tab => tab.hidden = tab.id !== subTabId); }
     
     function handleFinishedFilter(e) {
@@ -140,23 +144,23 @@ document.addEventListener('DOMContentLoaded', () => {
             const matchId = matchElement.dataset.matchId;
             if (matchId && !state.results[matchId]) {
                 startLiveMatch(matchId);
-                showTab('live');
                 const livePill = document.querySelector('.main-nav .pill[data-tab="live"]');
                 if (livePill) {
-                    document.querySelector('.main-nav .active').classList.remove('active');
+                    document.querySelector('.main-nav .active')?.classList.remove('active');
                     livePill.classList.add('active');
+                    showTab('live');
                 }
             }
         }
     }
 
-    // --- RENDERING ---
     function renderAll() {
         renderStandings();
         renderScorers();
         renderKnockout();
         renderFinishedFilters();
         renderFinishedMatches();
+        renderUpcomingMatches();
     }
 
     function renderStandings() {
@@ -166,7 +170,7 @@ document.addEventListener('DOMContentLoaded', () => {
         );
 
         dom.standingsBody.innerHTML = sortedTeams.map((s, index) => `
-            <tr data-match-id="${findNextMatchForTeam(s.id)?.id || ''}">
+            <tr class="${index < 6 ? 'row-top' : 'row-regular'}">
                 <td>${index + 1}</td>
                 <td><div class="team-cell"><img src="${s.logo}" alt=""><span>${s.name}</span></div></td>
                 <td>${s.j}</td><td>${s.g}</td><td>${s.n}</td><td>${s.p}</td>
@@ -201,75 +205,54 @@ document.addEventListener('DOMContentLoaded', () => {
         const standings = Object.values(calculateStandings()).sort((a, b) => 
             b.pts - a.pts || b.diff - a.diff || b.bp - a.bp || a.name.localeCompare(b.name)
         );
-        
         const getTeamForMatch = (match, side) => {
-            const seedKey = `${side}Seed`;
-            const idKey = `${side}Id`;
+            const seedKey = `${side}Seed`, idKey = `${side}Id`;
             if (match[seedKey] && standings[match[seedKey] - 1]) return standings[match[seedKey] - 1];
             if (String(match[idKey]).startsWith('winner_')) {
-                const sourceId = match[idKey].replace('winner_', '');
-                const sourceResult = state.results[sourceId];
+                const sourceResult = state.results[match[idKey].replace('winner_', '')];
                 return sourceResult ? getTeam(sourceResult.homeGoals > sourceResult.awayGoals ? sourceResult.homeId : sourceResult.awayId) : null;
             }
             return getTeam(match[idKey]);
         };
-        
         const stages = { barrage: [], demi: [], finale: [] };
         state.knockout.forEach(m => stages[m.type]?.push(m));
-
         let html = '';
         ['barrage', 'demi', 'finale'].forEach(type => {
             if (stages[type].length > 0) {
                 const title = { barrage: 'Barrages', demi: 'Demi-finales', finale: 'Finale' }[type];
                 html += `<div class="knockout-round"><h3 class="round-title">${title}</h3>`;
                 stages[type].forEach(match => {
-                    const home = getTeamForMatch(match, 'home');
-                    const away = getTeamForMatch(match, 'away');
-                    const result = state.results[match.id];
-                    let homeWinner = result && result.homeGoals > result.awayGoals;
-                    let awayWinner = result && result.awayGoals > result.homeGoals;
-                    
-                    html += `
-                    <div class="knockout-match" data-match-id="${match.id}">
-                        <div class="match-team ${homeWinner ? 'winner-team': ''}">
-                            <div class="team-info">${home ? `<img src="${home.logo}"><span>${home.name}</span>` : '<i>À déterminer</i>'}</div>
-                            <span class="team-score">${result ? result.homeGoals : '-'}</span>
-                        </div>
-                        <div class="match-team ${awayWinner ? 'winner-team' : ''}">
-                            <div class="team-info">${away ? `<img src="${away.logo}"><span>${away.name}</span>` : '<i>À déterminer</i>'}</div>
-                            <span class="team-score">${result ? result.awayGoals : '-'}</span>
-                        </div>
+                    const home = getTeamForMatch(match, 'home'), away = getTeamForMatch(match, 'away'), result = state.results[match.id];
+                    let homeWinner = result && result.homeGoals > result.awayGoals, awayWinner = result && result.awayGoals > result.homeGoals;
+                    html += `<div class="knockout-match" data-match-id="${match.id}">
+                        <div class="match-team ${homeWinner ? 'winner-team': ''}">${teamInfo(home, result?.homeGoals)}</div>
+                        <div class="match-team ${awayWinner ? 'winner-team' : ''}">${teamInfo(away, result?.awayGoals)}</div>
                     </div>`;
                 });
                 html += `</div>`;
             }
         });
         dom.knockoutContainer.innerHTML = html;
-        const winnerMatches = dom.knockoutContainer.querySelectorAll('.winner-team');
-        winnerMatches.forEach(el => el.closest('.knockout-match').classList.add('winner'));
+        dom.knockoutContainer.querySelectorAll('.winner-team').forEach(el => el.closest('.knockout-match').classList.add('winner'));
+    }
+    
+    function teamInfo(team, score) {
+        const teamHTML = team ? `<img src="${team.logo}"><span>${team.name}</span>` : '<i>À déterminer</i>';
+        return `<div class="team-info">${teamHTML}</div><span class="team-score">${score ?? '-'}</span>`;
     }
 
     function renderLiveMatchCard() {
         const match = findMatchById(state.liveMatch.id);
-        if (!match) { dom.liveMatchCard.hidden = true; dom.liveMatchPlaceholder.hidden = false; return; }
-
-        const homeTeam = getTeam(match.homeId);
-        const awayTeam = getTeam(match.awayId);
-        
-        const createPlayerPad = (team, side) => {
-            const pads = team.players.map(p => 
-                (p && p.toLowerCase() !== 'nul') ? `<button class="player-btn" data-player="${p}">${p}</button>` : `<div></div>`
-            ).join('');
-            return `<div class="player-pads" data-team="${side}">${pads.slice(0,3)}<button class="action-btn minus-btn" data-action="remove-goal" data-team="${side}">-</button>${pads.slice(3,5)}<button class="action-btn forfeit-btn" data-action="forfeit" data-team="${side}">F</button>${pads.slice(5,6)}</div>`;
-        }
-
+        if (!match) { dom.liveMatchCard.hidden = true; dom.upcomingMatchesContainer.hidden = false; return; }
+        const homeTeam = getTeam(match.homeId), awayTeam = getTeam(match.awayId);
+        const createPlayerPad = (team, side) => team.players.map(p => (p && p.toLowerCase() !== 'nul') ? `<button class="player-btn" data-player="${p}">${p}</button>` : `<div></div>`).join('');
         const createScorersLog = log => log.map(g => `<span class="scorer-entry"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em"><path d="M12,2A10,10,0,1,0,22,12,10,10,0,0,0,12,2Zm.88,4.38a1.5,1.5,0,1,1-1.76,0L12,2.32Z" transform="translate(-0.5 -0.5) scale(1.04)"/></svg>${g.name} ${g.minute}'</span>`).join('');
         const matchLabel = match.type === 'poule' ? `Journée ${match.round}` : { barrage: 'Barrage', demi: 'Demi-finale', finale: 'Finale' }[match.type];
-
+        
         dom.liveMatchCard.innerHTML = `
             <div class="live-team-panel team-a">
                 <div class="team-bar"><div class="team-identity"><img src="${homeTeam.logo}" class="team-bar-logo"><span class="team-bar-name">${homeTeam.name}</span></div><div class="scorers-log">${createScorersLog(state.liveMatch.homeLog)}</div></div>
-                ${createPlayerPad(homeTeam, 'home')}
+                <div class="player-pads" data-team="home">${createPlayerPad(homeTeam).slice(0,3)}<button class="action-btn minus-btn" data-action="remove-goal" data-team="home">-</button>${createPlayerPad(homeTeam).slice(3,5)}<button class="action-btn forfeit-btn" data-action="forfeit" data-team="home">F</button>${createPlayerPad(homeTeam).slice(5,6)}</div>
             </div>
             <div class="live-center-panel">
                 <div class="live-match-info">${matchLabel}</div>
@@ -278,27 +261,35 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="live-timer">${formatTime(state.liveMatch.remainingTime)}</div>
                 <div class="live-controls">
                     <div class="main-controls">
-                        <button data-action="play" aria-label="Play">▶</button>
-                        <button data-action="pause" aria-label="Pause">⏸</button>
-                        <button data-action="reset" aria-label="Reset">↻</button>
-                    </div>
-                    <button class="finish-btn" data-action="finish">Match terminé</button>
+                        <button data-action="play" aria-label="Play">▶</button><button data-action="pause" aria-label="Pause">⏸</button><button data-action="reset" aria-label="Reset">↻</button>
+                    </div><button class="finish-btn" data-action="finish">Match terminé</button>
                 </div>
             </div>
             <div class="live-team-panel team-b">
                 <div class="team-bar"><div class="team-identity"><span class="team-bar-name">${awayTeam.name}</span><img src="${awayTeam.logo}" class="team-bar-logo"></div><div class="scorers-log">${createScorersLog(state.liveMatch.awayLog)}</div></div>
-                ${createPlayerPad(awayTeam, 'away')}
+                <div class="player-pads" data-team="away">${createPlayerPad(awayTeam).slice(0,3)}<button class="action-btn minus-btn" data-action="remove-goal" data-team="away">-</button>${createPlayerPad(awayTeam).slice(3,5)}<button class="action-btn forfeit-btn" data-action="forfeit" data-team="away">F</button>${createPlayerPad(awayTeam).slice(5,6)}</div>
             </div>`;
-        
-        dom.liveMatchCard.hidden = false;
-        dom.liveMatchPlaceholder.hidden = true;
         dom.liveMatchCard.removeEventListener('click', handleLiveMatchActions);
         dom.liveMatchCard.addEventListener('click', handleLiveMatchActions);
     }
     
+    function renderUpcomingMatches() {
+        const upcoming = [...state.schedule, ...state.knockout].filter(m => !state.results[m.id]);
+        if (upcoming.length === 0) { dom.upcomingMatchesList.innerHTML = '<p>Tous les matchs sont terminés !</p>'; return; }
+        dom.upcomingMatchesList.innerHTML = upcoming.map(match => {
+            const home = getTeam(match.homeId), away = getTeam(match.awayId);
+            if (!home || !away) return ''; // Skip matches with unresolved teams
+            const label = match.type === 'poule' ? `Journée ${match.round}` : { barrage: 'Barrage', demi: 'Demi-finale', finale: 'Finale' }[match.type];
+            return `<div class="upcoming-match-card" data-match-id="${match.id}">
+                <div class="upcoming-team"><img src="${home.logo}"><span>${home.name}</span></div>
+                <div class="upcoming-info">${label}</div>
+                <div class="upcoming-team"><img src="${away.logo}"><span>${away.name}</span></div>
+            </div>`;
+        }).join('');
+    }
+
     function renderFinishedMatches(filter = 'all') {
-        const finished = Object.values(state.results).reverse();
-        const filtered = finished.filter(m => {
+        const filtered = Object.values(state.results).reverse().filter(m => {
             if (filter === 'all') return true;
             if (filter.startsWith('J')) return m.type === 'poule' && m.round == filter.slice(1);
             return m.type === filter;
@@ -306,8 +297,7 @@ document.addEventListener('DOMContentLoaded', () => {
         dom.finishedList.innerHTML = filtered.map(m => {
             const home = getTeam(m.homeId), away = getTeam(m.awayId);
             const scorerLog = log => log.map(g => `${g.name} ${g.minute}'`).join(', ');
-            return `
-            <div class="finished-card">
+            return `<div class="finished-card">
                 <div class="finished-card-main">
                     <div class="finished-card-team team-a"><img src="${home.logo}"><span>${home.name}</span></div>
                     <div class="finished-card-score">${m.homeGoals} - ${m.awayGoals}</div>
@@ -321,63 +311,45 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderFinishedFilters() {
         const rounds = new Set(state.schedule.map(m => m.round));
         const stages = new Set(state.knockout.map(m => m.type));
-        let filtersHTML = '<button class="pill active" data-filter="all">Tous</button>';
-        [...rounds].sort((a,b)=>a-b).forEach(r => filtersHTML += `<button class="pill" data-filter="J${r}">J${r}</button>`);
-        ['barrage', 'demi', 'finale'].forEach(s => {
-            if(stages.has(s)) filtersHTML += `<button class="pill" data-filter="${s}">${s.charAt(0).toUpperCase() + s.slice(1)}</button>`
-        });
-        dom.finishedFilters.innerHTML = filtersHTML;
+        let html = '<button class="pill active" data-filter="all">Tous</button>';
+        [...rounds].sort((a,b)=>a-b).forEach(r => html += `<button class="pill" data-filter="J${r}">J${r}</button>`);
+        ['barrage', 'demi', 'finale'].forEach(s => { if(stages.has(s)) html += `<button class="pill" data-filter="${s}">${s.charAt(0).toUpperCase() + s.slice(1)}</button>`});
+        dom.finishedFilters.innerHTML = html;
     }
 
-    // --- LOGIC ---
     function calculateStandings() {
         const stats = {};
-        state.teams.forEach(t => {
-            stats[t.id] = { id: t.id, name: t.name, logo: t.logo, j: 0, g: 0, n: 0, p: 0, bp: 0, bc: 0, diff: 0, bo: 0, bd: 0, pts: 0 };
-        });
+        state.teams.forEach(t => { stats[t.id] = { id: t.id, name: t.name, logo: t.logo, j: 0, g: 0, n: 0, p: 0, bp: 0, bc: 0, diff: 0, bo: 0, bd: 0, pts: 0 }; });
         Object.values(state.results).filter(r => r.type === 'poule').forEach(m => {
             const home = stats[m.homeId], away = stats[m.awayId];
             if (!home || !away) return;
-            home.j++; away.j++;
-            home.bp += m.homeGoals; away.bp += m.awayGoals;
-            home.bc += m.awayGoals; away.bc += m.homeGoals;
+            home.j++; away.j++; home.bp += m.homeGoals; away.bp += m.awayGoals; home.bc += m.awayGoals; away.bc += m.homeGoals;
             const diff = m.homeGoals - m.awayGoals;
-
             if (diff > 0) {
-                home.g++; away.p++;
-                home.pts += state.settings.points.win;
-                away.pts += state.settings.points.loss;
+                home.g++; away.p++; home.pts += state.settings.points.win; away.pts += state.settings.points.loss;
                 if (state.settings.bonus.enabled) {
                     if (diff >= state.settings.bonus.boThreshold) home.bo++;
                     if (Math.abs(diff) <= state.settings.bonus.bdThreshold) away.bd++;
                 }
             } else if (diff < 0) {
-                away.g++; home.p++;
-                away.pts += state.settings.points.win;
-                home.pts += state.settings.points.loss;
-                 if (state.settings.bonus.enabled) {
+                away.g++; home.p++; away.pts += state.settings.points.win; home.pts += state.settings.points.loss;
+                if (state.settings.bonus.enabled) {
                     if (Math.abs(diff) >= state.settings.bonus.boThreshold) away.bo++;
                     if (Math.abs(diff) <= state.settings.bonus.bdThreshold) home.bd++;
                 }
-            } else {
-                home.n++; away.n++;
-                home.pts += state.settings.points.draw;
-                away.pts += state.settings.points.draw;
-            }
+            } else { home.n++; away.n++; home.pts += state.settings.points.draw; away.pts += state.settings.points.draw; }
         });
         Object.values(stats).forEach(s => s.diff = s.bp - s.bc);
         return stats;
     }
 
     function generateSchedule(force = false) {
-        if (state.schedule.length > 0 && !force) return;
+        if (state.schedule.length && !force) return;
         const teams = [...state.teams];
         if (teams.length < 2) return;
         if (teams.length % 2 !== 0) teams.push({ id: 'bye' });
-
         const schedule = [];
-        const numRounds = teams.length - 1;
-        for (let round = 0; round < numRounds; round++) {
+        for (let round = 0; round < teams.length - 1; round++) {
             for (let i = 0; i < teams.length / 2; i++) {
                 const home = teams[i], away = teams[teams.length - 1 - i];
                 if (home.id !== 'bye' && away.id !== 'bye') {
@@ -392,27 +364,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function generateKnockout(force = false) {
-        if (state.knockout.length > 0 && !force) return;
+        if (state.knockout.length && !force) return;
         const numTeams = state.teams.length;
         state.knockout = [];
         if (numTeams >= 6) {
-            state.knockout.push({id: 'k_b1', type: 'barrage', homeSeed: 3, awaySeed: 6});
-            state.knockout.push({id: 'k_b2', type: 'barrage', homeSeed: 4, awaySeed: 5});
-            state.knockout.push({id: 'k_s1', type: 'demi', homeSeed: 1, awayId: 'winner_k_b2'});
-            state.knockout.push({id: 'k_s2', type: 'demi', homeSeed: 2, awayId: 'winner_k_b1'});
+            state.knockout.push({id: 'k_b1', type: 'barrage', homeSeed: 3, awaySeed: 6}, {id: 'k_b2', type: 'barrage', homeSeed: 4, awaySeed: 5});
+            state.knockout.push({id: 'k_s1', type: 'demi', homeSeed: 1, awayId: 'winner_k_b2'}, {id: 'k_s2', type: 'demi', homeSeed: 2, awayId: 'winner_k_b1'});
             state.knockout.push({id: 'k_f1', type: 'finale', homeId: 'winner_k_s1', awayId: 'winner_k_s2'});
         } else if (numTeams >= 4) {
-             state.knockout.push({id: 'k_s1', type: 'demi', homeSeed: 1, awaySeed: 4});
-             state.knockout.push({id: 'k_s2', type: 'demi', homeSeed: 2, awaySeed: 3});
+             state.knockout.push({id: 'k_s1', type: 'demi', homeSeed: 1, awaySeed: 4}, {id: 'k_s2', type: 'demi', homeSeed: 2, awaySeed: 3});
              state.knockout.push({id: 'k_f1', type: 'finale', homeId: 'winner_k_s1', awayId: 'winner_k_s2'});
-        } else if (numTeams >= 2) {
-            state.knockout.push({id: 'k_f1', type: 'finale', homeSeed: 1, awaySeed: 2});
-        }
+        } else if (numTeams >= 2) { state.knockout.push({id: 'k_f1', type: 'finale', homeSeed: 1, awaySeed: 2}); }
         if (force) alert("Phases finales regénérées.");
         saveState();
     }
 
-    // --- LIVE MATCH ACTIONS ---
     function startLiveMatch(matchId) {
         if (state.liveMatch.timerInterval) clearInterval(state.liveMatch.timerInterval);
         state.liveMatch = {
@@ -420,6 +386,8 @@ document.addEventListener('DOMContentLoaded', () => {
             homeScore: 0, awayScore: 0, homeLog: [], awayLog: [], status: 'upcoming'
         };
         renderLiveMatchCard();
+        dom.liveMatchCard.hidden = false;
+        dom.upcomingMatchesContainer.hidden = true;
     }
 
     function handleLiveMatchActions(e) {
@@ -448,8 +416,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function addGoal(side, player) {
-        const elapsed = state.settings.matchDuration * 60 - state.liveMatch.remainingTime;
-        const minute = Math.floor(elapsed / 60);
+        const minute = Math.floor((state.settings.matchDuration * 60 - state.liveMatch.remainingTime) / 60);
         const log = { name: player, minute };
         if (side === 'home') { state.liveMatch.homeScore++; state.liveMatch.homeLog.push(log); } 
         else { state.liveMatch.awayScore++; state.liveMatch.awayLog.push(log); }
@@ -464,15 +431,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function finishMatch(forfeitData = null) {
         clearInterval(state.liveMatch.timerInterval);
-        state.liveMatch.status = 'finished';
         const match = findMatchById(state.liveMatch.id);
         state.results[match.id] = {
-            id: match.id, type: match.type, round: match.round,
-            homeId: match.homeId, awayId: match.awayId,
+            id: match.id, type: match.type, round: match.round, homeId: match.homeId, awayId: match.awayId,
             homeGoals: forfeitData ? forfeitData.homeScore : state.liveMatch.homeScore,
             awayGoals: forfeitData ? forfeitData.awayScore : state.liveMatch.awayScore,
-            aLog: state.liveMatch.homeLog, bLog: state.liveMatch.awayLog,
-            forfeit: forfeitData ? forfeitData.forfeitingTeam : null
+            aLog: state.liveMatch.homeLog, bLog: state.liveMatch.awayLog, forfeit: forfeitData?.forfeitingTeam || null
         };
         state.liveMatch.id = null;
         saveState();
@@ -481,26 +445,11 @@ document.addEventListener('DOMContentLoaded', () => {
         handleNavigation({ target: document.querySelector('.main-nav .pill[data-tab="finished"]') }, 'tab', showTab);
     }
     
-    function forfeitMatch(side) {
-        finishMatch({
-            forfeitingTeam: side,
-            homeScore: side === 'home' ? 0 : state.settings.forfeitScore,
-            awayScore: side === 'away' ? 0 : state.settings.forfeitScore,
-        });
-    }
+    function forfeitMatch(side) { finishMatch({ forfeitingTeam: side, homeScore: side === 'home' ? 0 : state.settings.forfeitScore, awayScore: side === 'away' ? 0 : state.settings.forfeitScore }); }
 
-    // --- ADMIN ---
     function saveSettings() {
-        state.settings.points = {
-            win: parseInt(document.getElementById('points-win').value),
-            draw: parseInt(document.getElementById('points-draw').value),
-            loss: parseInt(document.getElementById('points-loss').value),
-        };
-        state.settings.bonus = {
-            enabled: document.getElementById('bonus-enabled').value === 'true',
-            boThreshold: parseInt(document.getElementById('bo-threshold').value),
-            bdThreshold: parseInt(document.getElementById('bd-threshold').value),
-        };
+        state.settings.points = { win: parseInt(document.getElementById('points-win').value), draw: parseInt(document.getElementById('points-draw').value), loss: parseInt(document.getElementById('points-loss').value) };
+        state.settings.bonus = { enabled: document.getElementById('bonus-enabled').value === 'true', boThreshold: parseInt(document.getElementById('bo-threshold').value), bdThreshold: parseInt(document.getElementById('bd-threshold').value) };
         state.settings.matchDuration = parseInt(document.getElementById('match-duration').value);
         state.settings.forfeitScore = parseInt(document.getElementById('forfeit-score').value);
         saveState();
@@ -526,10 +475,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- UTILS ---
     const getTeam = id => state.teams.find(t => t.id === id);
     const findMatchById = id => [...state.schedule, ...state.knockout].find(m => m.id === id);
-    const findNextMatchForTeam = id => state.schedule.find(m => (m.homeId === id || m.awayId === id) && !state.results[m.id]);
     const formatTime = s => `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
 
     init();
