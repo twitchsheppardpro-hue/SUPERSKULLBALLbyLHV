@@ -3,130 +3,123 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Skullball Tournament</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <title>National League of Skullball</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div id="error-banner" class="error-banner" hidden>
-        Impossible de charger les données du tournoi. <button id="retry-fetch">Réessayer</button>
-    </div>
 
     <header class="main-header">
-        <div class="header-container">
-            <div class="header-left">
-                <img src="./logos/logoevent.png" alt="Logo de l'événement" class="event-logo">
+        <div class="header-content">
+            <div class="league-brand">
+                <img src="data/logos/logoevent.png" alt="League Logo" class="league-logo">
+                <h1 class="league-title">National League of Skullball</h1>
             </div>
             <nav class="main-nav">
-                <button class="pill active" data-tab="classement">Classement</button>
-                <button class="pill" data-tab="live">Matchs en direct</button>
-                <button class="pill" data-tab="finished">Matchs terminés</button>
+                <a href="#/classement" class="pill" data-tab="classement">Classement</a>
+                <a href="#/live" class="pill" data-tab="live">Matchs en direct</a>
+                <a href="#/finished" class="pill" data-tab="finished">Matchs terminés</a>
             </nav>
-            <div class="header-right">
-                <button class="pill" data-tab="admin">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                    Admin
-                </button>
-            </div>
+            <div class="admin-badge" id="admin-toggle">Admin</div>
         </div>
     </header>
 
-    <main class="main-container">
-        <!-- Onglet Classement -->
-        <section id="tab-classement" class="tab-content">
-            <nav class="sub-nav">
-                <button class="pill active" data-sub-tab="standings-view">Classement</button>
-                <button class="pill" data-sub-tab="knockout-view">Phase Finale</button>
-                <button class="pill" data-sub-tab="scorers-view">Buteur</button>
-            </nav>
-            <div id="standings-view" class="sub-tab-content">
-                <div class="panel">
-                    <div class="panel-header">Tri: Points ► Diff ► BP ► Confrontation directe.</div>
-                    <table class="standings-table">
-                        <thead>
-                            <tr>
-                                <th class="col-rank">#</th>
-                                <th class="col-team">Équipe</th>
-                                <th>J</th><th>G</th><th>N</th><th>P</th>
-                                <th>BP</th><th>BC</th><th>Diff</th>
-                                <th>BO</th><th>BD</th>
-                                <th class="col-pts">Pts</th>
-                            </tr>
-                        </thead>
-                        <tbody id="standings-body"></tbody>
-                    </table>
-                </div>
-            </div>
-            <div id="knockout-view" class="sub-tab-content" hidden>
-                 <div class="knockout-grid" id="knockout-container">
-                    <!-- Généré par JS -->
-                 </div>
-            </div>
-            <div id="scorers-view" class="sub-tab-content" hidden>
-                <div class="panel">
-                    <table class="scorers-table">
-                        <thead>
-                            <tr>
-                                <th class="col-rank">#</th>
-                                <th class="col-player">Joueur</th>
-                                <th class="col-club">Club</th>
-                                <th class="col-goals">Buts</th>
-                            </tr>
-                        </thead>
-                        <tbody id="scorers-body"></tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
-
-        <!-- Onglet Matchs en direct -->
-        <section id="tab-live" class="tab-content" hidden>
-            <div id="live-match-card" class="live-card" hidden>
-                <!-- La grande carte de match en direct est injectée ici par le JS -->
-            </div>
-            <div id="upcoming-matches-container" class="panel">
-                 <h3 class="upcoming-matches-title">Matchs à jouer</h3>
-                 <div id="upcoming-matches-list">
-                     <!-- La liste des matchs à venir est injectée ici -->
-                 </div>
-            </div>
-        </section>
-
-        <!-- Onglet Matchs terminés -->
-        <section id="tab-finished" class="tab-content" hidden>
-            <nav class="sub-nav" id="finished-filters">
-                <!-- Filtres générés par JS -->
-            </nav>
-            <div id="finished-list" class="finished-list">
-                <!-- Cartes générées par JS -->
-            </div>
-        </section>
-
-        <!-- Onglet Admin -->
-        <section id="tab-admin" class="tab-content" hidden>
-            <div class="panel admin-panel">
+    <main class="container">
+        <!-- Admin Panel (Sliding) -->
+        <aside class="admin-panel" id="admin-panel">
+            <h2><span class="icon">⚙️</span> Admin</h2>
+            <div class="admin-section">
                 <h3>Règles & Options</h3>
-                <form id="admin-form" class="admin-form">
-                    <div class="form-group"><label>Points Victoire</label><input type="number" id="points-win"></div>
-                    <div class="form-group"><label>Points Nul</label><input type="number" id="points-draw"></div>
-                    <div class="form-group"><label>Points Défaite</label><input type="number" id="points-loss"></div>
-                    <div class="form-group"><label>Activer Bonus</label><select id="bonus-enabled"><option value="true">Oui</option><option value="false">Non</option></select></div>
-                    <div class="form-group"><label>Seuil BO (écart ≥)</label><input type="number" id="bo-threshold"></div>
-                    <div class="form-group"><label>Seuil BD (défaite par ≤)</label><input type="number" id="bd-threshold"></div>
-                    <div class="form-group"><label>Durée Match (min)</label><input type="number" id="match-duration"></div>
-                    <div class="form-group"><label>Score Forfait (perte)</label><input type="number" id="forfeit-score"></div>
+                <form id="rules-form" class="admin-form">
+                    <label>Points victoire <input type="number" id="rule-win" value="3"></label>
+                    <label>Points nul <input type="number" id="rule-draw" value="1"></label>
+                    <label>Points défaite <input type="number" id="rule-loss" value="0"></label>
+                    <label>Activer bonus <select id="rule-bonus-enabled"><option value="true">Oui</option><option value="false">Non</option></select></label>
+                    <label>BO (+ points) <input type="number" id="rule-bo-points" value="1"></label>
+                    <label>Seuil BO (écart ≥) <input type="number" id="rule-bo-threshold" value="3"></label>
+                    <label>BD (+ points) <input type="number" id="rule-bd-points" value="1"></label>
+                    <label>Seuil BD (écart ≤) <input type="number" id="rule-bd-threshold" value="1"></label>
+                    <label>Durée match (min) <input type="number" id="rule-duration" value="15"></label>
+                    <button type="submit">Sauvegarder règles</button>
                 </form>
-                <div class="admin-actions">
-                     <button id="save-settings" class="btn-primary">Sauvegarder les règles</button>
-                     <button id="generate-schedule" class="btn-secondary">Générer le calendrier</button>
-                     <button id="generate-knockout" class="btn-secondary">Générer les phases finales</button>
-                     <button id="reset-app" class="btn-danger">Réinitialiser le tournoi</button>
+            </div>
+            <div class="admin-section">
+                <h3>Génération</h3>
+                <div class="generation-controls">
+                    <button id="generate-matches">Générer les matchs</button>
+                    <label><input type="checkbox" id="home-away-checkbox"> Aller/Retour</label>
+                    <button id="generate-playoffs">Générer les phases finales</button>
                 </div>
             </div>
-        </section>
+             <div class="admin-section">
+                <h3>Données</h3>
+                <div class="data-controls">
+                    <button id="export-data">Exporter JSON</button>
+                    <label class="file-label">Importer JSON <input type="file" id="import-data" accept=".json"></label>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <div class="content-area">
+            <!-- Classement View -->
+            <section id="view-classement" class="view">
+                <nav class="sub-nav">
+                    <button class="pill" data-sub-tab="standings" class="active">Classement</button>
+                    <button class="pill" data-sub-tab="playoffs">Phase finale</button>
+                    <button class="pill" data-sub-tab="scorers">Buteurs</button>
+                </nav>
+                <div id="sub-view-standings" class="sub-view">
+                    <div class="table-wrapper">
+                        <table class="styled-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th><th>Équipe</th><th>J</th><th>G</th><th>N</th><th>P</th><th>BP</th><th>BC</th><th>Diff</th><th>BO</th><th>BD</th><th>Pts</th>
+                                </tr>
+                            </thead>
+                            <tbody id="standings-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div id="sub-view-playoffs" class="sub-view hidden">
+                    <div class="playoff-bracket">
+                        <div class="bracket-round"><h3>Barrages</h3><div id="bracket-barrages"></div></div>
+                        <div class="bracket-round"><h3>Demi-finales</h3><div id="bracket-demis"></div></div>
+                        <div class="bracket-round"><h3>Finale</h3><div id="bracket-finale"></div></div>
+                    </div>
+                </div>
+                <div id="sub-view-scorers" class="sub-view hidden">
+                    <div class="table-wrapper">
+                        <table class="styled-table">
+                            <thead><tr><th>#</th><th>Joueur</th><th>Club</th><th>Buts</th></tr></thead>
+                            <tbody id="scorers-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Live View -->
+            <section id="view-live" class="view hidden">
+                <div id="live-matches-list" class="matches-grid"></div>
+            </section>
+            
+            <!-- Full Screen Match View -->
+            <section id="view-match" class="view hidden">
+                 <!-- Content injected by JS -->
+            </section>
+
+
+            <!-- Finished View -->
+            <section id="view-finished" class="view hidden">
+                <div class="filters">
+                    <span>Filtrer:</span>
+                    <div id="finished-filters" class="filter-pills"></div>
+                </div>
+                <div id="finished-matches-list" class="matches-grid"></div>
+            </section>
+        </div>
     </main>
+    
+    <div id="toast" class="toast"></div>
 
     <script src="app.js"></script>
 </body>
