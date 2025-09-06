@@ -1,483 +1,80 @@
-// filename:app.js
-document.addEventListener('DOMContentLoaded', () => {
-    const API = {
-        DATA_URL: './data/team.json',
-        STORAGE_KEY: 'skullball:v2',
-    };
-
-    const state = {
-        teams: [],
-        schedule: [],
-        knockout: [],
-        results: {},
-        settings: {
-            points: { win: 3, draw: 1, loss: 0 },
-            bonus: { enabled: true, boThreshold: 3, bdThreshold: 1 },
-            matchDuration: 15,
-            forfeitScore: 3,
-        },
-        liveMatch: {
-            id: null,
-            timerInterval: null,
-            remainingTime: 0,
-            homeScore: 0,
-            awayScore: 0,
-            homeLog: [],
-            awayLog: [],
-            status: 'upcoming'
-        },
-    };
-
-    const dom = {
-        mainNav: document.querySelector('.main-nav'),
-        tabs: document.querySelectorAll('.tab-content'),
-        classementSubNav: document.querySelector('#tab-classement .sub-nav'),
-        subTabs: document.querySelectorAll('.sub-tab-content'),
-        standingsBody: document.getElementById('standings-body'),
-        scorersBody: document.getElementById('scorers-body'),
-        knockoutContainer: document.getElementById('knockout-container'),
-        liveMatchCard: document.getElementById('live-match-card'),
-        upcomingMatchesContainer: document.getElementById('upcoming-matches-container'),
-        upcomingMatchesList: document.getElementById('upcoming-matches-list'),
-        finishedList: document.getElementById('finished-list'),
-        finishedFilters: document.getElementById('finished-filters'),
-        errorBanner: document.getElementById('error-banner'),
-        retryFetchBtn: document.getElementById('retry-fetch'),
-    };
-
-    async function init() {
-        setupEventListeners();
-        loadState();
-        try {
-            await fetchData();
-            dom.errorBanner.hidden = true;
-        } catch (error) {
-            console.error("Failed to fetch initial data:", error);
-            dom.errorBanner.hidden = false;
-            return;
-        }
-        
-        if (!state.schedule.length) generateSchedule();
-        if (!state.knockout.length) generateKnockout();
-
-        renderAll();
-        showTab('classement');
+{
+  "season": "2025",
+  "teams": [
+    {
+      "id": 1,
+      "name": "Toulouse",
+      "shortName": "ST",
+      "logo": "equipe8.png",
+      "colors": { "primary": "#c1121f", "secondary": "#0b0f19" },
+      "players": ["Dupont", "Ntamack", "Ollivon", "Baille", "Marchand"]
+    },
+    {
+      "id": 2,
+      "name": "Bordeaux",
+      "shortName": "UBB",
+      "logo": "equipe13.png",
+      "colors": { "primary": "#831843", "secondary": "#ffffff" },
+      "players": ["Jalibert", "Lucu", "Penaud", "Bielle-Biarrey", "Moefana"]
+    },
+    {
+      "id": 3,
+      "name": "Toulon",
+      "shortName": "RCT",
+      "logo": "equipe5.png",
+      "colors": { "primary": "#ef4444", "secondary": "#000000" },
+      "players": ["Serin", "Biggar", "Villière", "Priso", "Gabin"]
+    },
+    {
+      "id": 4,
+      "name": "Pau",
+      "shortName": "SP",
+      "logo": "equipe7.png",
+      "colors": { "primary": "#16a34a", "secondary": "#ffffff" },
+      "players": ["Maddocks", "Robson", "Gailleton", "Attissogbe", "Simmonds"]
+    },
+    {
+      "id": 5,
+      "name": "Clermont",
+      "shortName": "ASM",
+      "logo": "equipe4.png",
+      "colors": { "primary": "#f59e0b", "secondary": "#0c4a6e" },
+      "players": ["Urdapilleta", "Jauneau", "Raka", "Fouyssac", "Moala"]
+    },
+    {
+      "id": 6,
+      "name": "Bayonne",
+      "shortName": "AB",
+      "logo": "equipe2.png",
+      "colors": { "primary": "#3b82f6", "secondary": "#ffffff" },
+      "players": ["Lopez", "Machenaud", "Spring", "Baget", "Iturria"]
+    },
+    {
+      "id": 7,
+      "name": "Perpignan",
+      "shortName": "USAP",
+      "logo": "equipe10.png",
+      "colors": { "primary": "#facc15", "secondary": "#dc2626" },
+      "players": ["McIntyre", "De la Fuente", "Tuilagi", "Acebes", "Ecochard"]
+    },
+    {
+      "id": 8,
+      "name": "Lyon",
+      "shortName": "LOU",
+      "logo": "equipe14.png",
+      "colors": { "primary": "#1f2937", "secondary": "#ef4444" },
+      "players": ["Couilloud", "Berdeu", "Tuisova", "Regard", "Marchant"]
     }
-
-    function loadState() {
-        try {
-            const savedState = localStorage.getItem(API.STORAGE_KEY);
-            if (savedState) {
-                const parsed = JSON.parse(savedState);
-                state.schedule = parsed.schedule || [];
-                state.knockout = parsed.knockout || [];
-                state.results = parsed.results || {};
-                state.settings = { ...state.settings, ...parsed.settings };
-            }
-        } catch (e) { console.error("Could not load state", e); }
-        updateAdminForm();
-    }
-
-    function saveState() {
-        const stateToSave = { 
-            schedule: state.schedule,
-            knockout: state.knockout,
-            results: state.results,
-            settings: state.settings,
-        };
-        localStorage.setItem(API.STORAGE_KEY, JSON.stringify(stateToSave));
-    }
-
-    async function fetchData() {
-        const response = await fetch(API.DATA_URL);
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        const data = await response.json();
-        state.teams = data.teams;
-    }
-    
-    function setupEventListeners() {
-        dom.mainNav.addEventListener('click', e => handleNavigation(e, 'tab', showTab));
-        dom.classementSubNav.addEventListener('click', e => handleNavigation(e, 'sub-tab', showSubTab));
-        dom.finishedFilters.addEventListener('click', e => handleFinishedFilter(e));
-        document.getElementById('save-settings').addEventListener('click', saveSettings);
-        document.getElementById('generate-schedule').addEventListener('click', () => { generateSchedule(true); renderAll(); });
-        document.getElementById('generate-knockout').addEventListener('click', () => { generateKnockout(true); renderAll(); });
-        document.getElementById('reset-app').addEventListener('click', resetApplication);
-        dom.retryFetchBtn.addEventListener('click', init);
-        dom.upcomingMatchesList.addEventListener('click', handleMatchSelection);
-        dom.knockoutContainer.addEventListener('click', handleMatchSelection);
-    }
-    
-    function handleNavigation(e, dataAttr, showFn) {
-        const pill = e.target.closest('.pill');
-        if (pill && pill.dataset[dataAttr]) {
-            const parentNav = pill.closest('nav');
-            parentNav.querySelector('.active')?.classList.remove('active');
-            pill.classList.add('active');
-            showFn(pill.dataset[dataAttr]);
-        }
-    }
-
-    function showTab(tabId) {
-        dom.tabs.forEach(tab => tab.hidden = tab.id !== `tab-${tabId}`);
-        if (tabId === 'live') {
-            renderUpcomingMatches();
-            const isMatchLive = state.liveMatch.id !== null;
-            dom.liveMatchCard.hidden = !isMatchLive;
-            dom.upcomingMatchesContainer.hidden = isMatchLive;
-        }
-    }
-    function showSubTab(subTabId) { dom.subTabs.forEach(tab => tab.hidden = tab.id !== subTabId); }
-    
-    function handleFinishedFilter(e) {
-        const pill = e.target.closest('.pill');
-        if (pill && pill.dataset.filter) {
-            dom.finishedFilters.querySelector('.active')?.classList.remove('active');
-            pill.classList.add('active');
-            renderFinishedMatches(pill.dataset.filter);
-        }
-    }
-    
-    function handleMatchSelection(e) {
-        const matchElement = e.target.closest('[data-match-id]');
-        if (matchElement) {
-            const matchId = matchElement.dataset.matchId;
-            if (matchId && !state.results[matchId]) {
-                startLiveMatch(matchId);
-                const livePill = document.querySelector('.main-nav .pill[data-tab="live"]');
-                if (livePill) {
-                    document.querySelector('.main-nav .active')?.classList.remove('active');
-                    livePill.classList.add('active');
-                    showTab('live');
-                }
-            }
-        }
-    }
-
-    function renderAll() {
-        renderStandings();
-        renderScorers();
-        renderKnockout();
-        renderFinishedFilters();
-        renderFinishedMatches();
-        renderUpcomingMatches();
-    }
-
-    function renderStandings() {
-        const stats = calculateStandings();
-        const sortedTeams = Object.values(stats).sort((a, b) => 
-            b.pts - a.pts || b.diff - a.diff || b.bp - a.bp || a.name.localeCompare(b.name)
-        );
-
-        dom.standingsBody.innerHTML = sortedTeams.map((s, index) => `
-            <tr class="${index < 6 ? 'row-top' : 'row-regular'}">
-                <td>${index + 1}</td>
-                <td><div class="team-cell"><img src="${s.logo}" alt=""><span>${s.name}</span></div></td>
-                <td>${s.j}</td><td>${s.g}</td><td>${s.n}</td><td>${s.p}</td>
-                <td>${s.bp}</td><td>${s.bc}</td><td>${s.diff}</td>
-                <td>${s.bo}</td><td>${s.bd}</td><td class="col-pts">${s.pts}</td>
-            </tr>
-        `).join('');
-    }
-
-    function renderScorers() {
-        const scorerStats = {};
-        Object.values(state.results).forEach(result => {
-            [...(result.aLog || []), ...(result.bLog || [])].forEach(goal => {
-                if (!scorerStats[goal.name]) {
-                    const playerTeam = state.teams.find(t => t.players.includes(goal.name));
-                    scorerStats[goal.name] = { name: goal.name, goals: 0, team: playerTeam };
-                }
-                scorerStats[goal.name].goals++;
-            });
-        });
-        const sortedScorers = Object.values(scorerStats).sort((a, b) => b.goals - a.goals);
-        dom.scorersBody.innerHTML = sortedScorers.map((s, i) => `
-            <tr>
-                <td>${i + 1}</td>
-                <td class="col-player">${s.name}</td>
-                <td class="col-club">${s.team ? `<img class="club-logo" src="${s.team.logo}" alt="">` : ''}</td>
-                <td class="col-goals">${s.goals}</td>
-            </tr>`).join('');
-    }
-    
-    function renderKnockout() {
-        const standings = Object.values(calculateStandings()).sort((a, b) => 
-            b.pts - a.pts || b.diff - a.diff || b.bp - a.bp || a.name.localeCompare(b.name)
-        );
-        const getTeamForMatch = (match, side) => {
-            const seedKey = `${side}Seed`, idKey = `${side}Id`;
-            if (match[seedKey] && standings[match[seedKey] - 1]) return standings[match[seedKey] - 1];
-            if (String(match[idKey]).startsWith('winner_')) {
-                const sourceResult = state.results[match[idKey].replace('winner_', '')];
-                return sourceResult ? getTeam(sourceResult.homeGoals > sourceResult.awayGoals ? sourceResult.homeId : sourceResult.awayId) : null;
-            }
-            return getTeam(match[idKey]);
-        };
-        const stages = { barrage: [], demi: [], finale: [] };
-        state.knockout.forEach(m => stages[m.type]?.push(m));
-        let html = '';
-        ['barrage', 'demi', 'finale'].forEach(type => {
-            if (stages[type].length > 0) {
-                const title = { barrage: 'Barrages', demi: 'Demi-finales', finale: 'Finale' }[type];
-                html += `<div class="knockout-round"><h3 class="round-title">${title}</h3>`;
-                stages[type].forEach(match => {
-                    const home = getTeamForMatch(match, 'home'), away = getTeamForMatch(match, 'away'), result = state.results[match.id];
-                    let homeWinner = result && result.homeGoals > result.awayGoals, awayWinner = result && result.awayGoals > result.homeGoals;
-                    html += `<div class="knockout-match" data-match-id="${match.id}">
-                        <div class="match-team ${homeWinner ? 'winner-team': ''}">${teamInfo(home, result?.homeGoals)}</div>
-                        <div class="match-team ${awayWinner ? 'winner-team' : ''}">${teamInfo(away, result?.awayGoals)}</div>
-                    </div>`;
-                });
-                html += `</div>`;
-            }
-        });
-        dom.knockoutContainer.innerHTML = html;
-        dom.knockoutContainer.querySelectorAll('.winner-team').forEach(el => el.closest('.knockout-match').classList.add('winner'));
-    }
-    
-    function teamInfo(team, score) {
-        const teamHTML = team ? `<img src="${team.logo}"><span>${team.name}</span>` : '<i>À déterminer</i>';
-        return `<div class="team-info">${teamHTML}</div><span class="team-score">${score ?? '-'}</span>`;
-    }
-
-    function renderLiveMatchCard() {
-        const match = findMatchById(state.liveMatch.id);
-        if (!match) { dom.liveMatchCard.hidden = true; dom.upcomingMatchesContainer.hidden = false; return; }
-        const homeTeam = getTeam(match.homeId), awayTeam = getTeam(match.awayId);
-        const createPlayerPad = (team, side) => team.players.map(p => (p && p.toLowerCase() !== 'nul') ? `<button class="player-btn" data-player="${p}">${p}</button>` : `<div></div>`).join('');
-        const createScorersLog = log => log.map(g => `<span class="scorer-entry"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em"><path d="M12,2A10,10,0,1,0,22,12,10,10,0,0,0,12,2Zm.88,4.38a1.5,1.5,0,1,1-1.76,0L12,2.32Z" transform="translate(-0.5 -0.5) scale(1.04)"/></svg>${g.name} ${g.minute}'</span>`).join('');
-        const matchLabel = match.type === 'poule' ? `Journée ${match.round}` : { barrage: 'Barrage', demi: 'Demi-finale', finale: 'Finale' }[match.type];
-        
-        dom.liveMatchCard.innerHTML = `
-            <div class="live-team-panel team-a">
-                <div class="team-bar"><div class="team-identity"><img src="${homeTeam.logo}" class="team-bar-logo"><span class="team-bar-name">${homeTeam.name}</span></div><div class="scorers-log">${createScorersLog(state.liveMatch.homeLog)}</div></div>
-                <div class="player-pads" data-team="home">${createPlayerPad(homeTeam).slice(0,3)}<button class="action-btn minus-btn" data-action="remove-goal" data-team="home">-</button>${createPlayerPad(homeTeam).slice(3,5)}<button class="action-btn forfeit-btn" data-action="forfeit" data-team="home">F</button>${createPlayerPad(homeTeam).slice(5,6)}</div>
-            </div>
-            <div class="live-center-panel">
-                <div class="live-match-info">${matchLabel}</div>
-                <div class="live-status-pill">${state.liveMatch.status.toUpperCase()}</div>
-                <div class="live-score">${state.liveMatch.homeScore} - ${state.liveMatch.awayScore}</div>
-                <div class="live-timer">${formatTime(state.liveMatch.remainingTime)}</div>
-                <div class="live-controls">
-                    <div class="main-controls">
-                        <button data-action="play" aria-label="Play">▶</button><button data-action="pause" aria-label="Pause">⏸</button><button data-action="reset" aria-label="Reset">↻</button>
-                    </div><button class="finish-btn" data-action="finish">Match terminé</button>
-                </div>
-            </div>
-            <div class="live-team-panel team-b">
-                <div class="team-bar"><div class="team-identity"><span class="team-bar-name">${awayTeam.name}</span><img src="${awayTeam.logo}" class="team-bar-logo"></div><div class="scorers-log">${createScorersLog(state.liveMatch.awayLog)}</div></div>
-                <div class="player-pads" data-team="away">${createPlayerPad(awayTeam).slice(0,3)}<button class="action-btn minus-btn" data-action="remove-goal" data-team="away">-</button>${createPlayerPad(awayTeam).slice(3,5)}<button class="action-btn forfeit-btn" data-action="forfeit" data-team="away">F</button>${createPlayerPad(awayTeam).slice(5,6)}</div>
-            </div>`;
-        dom.liveMatchCard.removeEventListener('click', handleLiveMatchActions);
-        dom.liveMatchCard.addEventListener('click', handleLiveMatchActions);
-    }
-    
-    function renderUpcomingMatches() {
-        const upcoming = [...state.schedule, ...state.knockout].filter(m => !state.results[m.id]);
-        if (upcoming.length === 0) { dom.upcomingMatchesList.innerHTML = '<p>Tous les matchs sont terminés !</p>'; return; }
-        dom.upcomingMatchesList.innerHTML = upcoming.map(match => {
-            const home = getTeam(match.homeId), away = getTeam(match.awayId);
-            if (!home || !away) return ''; // Skip matches with unresolved teams
-            const label = match.type === 'poule' ? `Journée ${match.round}` : { barrage: 'Barrage', demi: 'Demi-finale', finale: 'Finale' }[match.type];
-            return `<div class="upcoming-match-card" data-match-id="${match.id}">
-                <div class="upcoming-team"><img src="${home.logo}"><span>${home.name}</span></div>
-                <div class="upcoming-info">${label}</div>
-                <div class="upcoming-team"><img src="${away.logo}"><span>${away.name}</span></div>
-            </div>`;
-        }).join('');
-    }
-
-    function renderFinishedMatches(filter = 'all') {
-        const filtered = Object.values(state.results).reverse().filter(m => {
-            if (filter === 'all') return true;
-            if (filter.startsWith('J')) return m.type === 'poule' && m.round == filter.slice(1);
-            return m.type === filter;
-        });
-        dom.finishedList.innerHTML = filtered.map(m => {
-            const home = getTeam(m.homeId), away = getTeam(m.awayId);
-            const scorerLog = log => log.map(g => `${g.name} ${g.minute}'`).join(', ');
-            return `<div class="finished-card">
-                <div class="finished-card-main">
-                    <div class="finished-card-team team-a"><img src="${home.logo}"><span>${home.name}</span></div>
-                    <div class="finished-card-score">${m.homeGoals} - ${m.awayGoals}</div>
-                    <div class="finished-card-team team-b"><span>${away.name}</span><img src="${away.logo}"></div>
-                </div>
-                <div class="finished-card-scorers"><span>${scorerLog(m.aLog)}</span><span>${scorerLog(m.bLog)}</span></div>
-            </div>`;
-        }).join('');
-    }
-    
-    function renderFinishedFilters() {
-        const rounds = new Set(state.schedule.map(m => m.round));
-        const stages = new Set(state.knockout.map(m => m.type));
-        let html = '<button class="pill active" data-filter="all">Tous</button>';
-        [...rounds].sort((a,b)=>a-b).forEach(r => html += `<button class="pill" data-filter="J${r}">J${r}</button>`);
-        ['barrage', 'demi', 'finale'].forEach(s => { if(stages.has(s)) html += `<button class="pill" data-filter="${s}">${s.charAt(0).toUpperCase() + s.slice(1)}</button>`});
-        dom.finishedFilters.innerHTML = html;
-    }
-
-    function calculateStandings() {
-        const stats = {};
-        state.teams.forEach(t => { stats[t.id] = { id: t.id, name: t.name, logo: t.logo, j: 0, g: 0, n: 0, p: 0, bp: 0, bc: 0, diff: 0, bo: 0, bd: 0, pts: 0 }; });
-        Object.values(state.results).filter(r => r.type === 'poule').forEach(m => {
-            const home = stats[m.homeId], away = stats[m.awayId];
-            if (!home || !away) return;
-            home.j++; away.j++; home.bp += m.homeGoals; away.bp += m.awayGoals; home.bc += m.awayGoals; away.bc += m.homeGoals;
-            const diff = m.homeGoals - m.awayGoals;
-            if (diff > 0) {
-                home.g++; away.p++; home.pts += state.settings.points.win; away.pts += state.settings.points.loss;
-                if (state.settings.bonus.enabled) {
-                    if (diff >= state.settings.bonus.boThreshold) home.bo++;
-                    if (Math.abs(diff) <= state.settings.bonus.bdThreshold) away.bd++;
-                }
-            } else if (diff < 0) {
-                away.g++; home.p++; away.pts += state.settings.points.win; home.pts += state.settings.points.loss;
-                if (state.settings.bonus.enabled) {
-                    if (Math.abs(diff) >= state.settings.bonus.boThreshold) away.bo++;
-                    if (Math.abs(diff) <= state.settings.bonus.bdThreshold) home.bd++;
-                }
-            } else { home.n++; away.n++; home.pts += state.settings.points.draw; away.pts += state.settings.points.draw; }
-        });
-        Object.values(stats).forEach(s => s.diff = s.bp - s.bc);
-        return stats;
-    }
-
-    function generateSchedule(force = false) {
-        if (state.schedule.length && !force) return;
-        const teams = [...state.teams];
-        if (teams.length < 2) return;
-        if (teams.length % 2 !== 0) teams.push({ id: 'bye' });
-        const schedule = [];
-        for (let round = 0; round < teams.length - 1; round++) {
-            for (let i = 0; i < teams.length / 2; i++) {
-                const home = teams[i], away = teams[teams.length - 1 - i];
-                if (home.id !== 'bye' && away.id !== 'bye') {
-                    schedule.push({ id: `p_${round+1}_${i+1}`, round: round + 1, type: 'poule', homeId: home.id, awayId: away.id });
-                }
-            }
-            teams.splice(1, 0, teams.pop());
-        }
-        state.schedule = schedule;
-        if (force) { state.results = {}; alert("Calendrier et résultats réinitialisés."); }
-        saveState();
-    }
-    
-    function generateKnockout(force = false) {
-        if (state.knockout.length && !force) return;
-        const numTeams = state.teams.length;
-        state.knockout = [];
-        if (numTeams >= 6) {
-            state.knockout.push({id: 'k_b1', type: 'barrage', homeSeed: 3, awaySeed: 6}, {id: 'k_b2', type: 'barrage', homeSeed: 4, awaySeed: 5});
-            state.knockout.push({id: 'k_s1', type: 'demi', homeSeed: 1, awayId: 'winner_k_b2'}, {id: 'k_s2', type: 'demi', homeSeed: 2, awayId: 'winner_k_b1'});
-            state.knockout.push({id: 'k_f1', type: 'finale', homeId: 'winner_k_s1', awayId: 'winner_k_s2'});
-        } else if (numTeams >= 4) {
-             state.knockout.push({id: 'k_s1', type: 'demi', homeSeed: 1, awaySeed: 4}, {id: 'k_s2', type: 'demi', homeSeed: 2, awaySeed: 3});
-             state.knockout.push({id: 'k_f1', type: 'finale', homeId: 'winner_k_s1', awayId: 'winner_k_s2'});
-        } else if (numTeams >= 2) { state.knockout.push({id: 'k_f1', type: 'finale', homeSeed: 1, awaySeed: 2}); }
-        if (force) alert("Phases finales regénérées.");
-        saveState();
-    }
-
-    function startLiveMatch(matchId) {
-        if (state.liveMatch.timerInterval) clearInterval(state.liveMatch.timerInterval);
-        state.liveMatch = {
-            id: matchId, timerInterval: null, remainingTime: state.settings.matchDuration * 60,
-            homeScore: 0, awayScore: 0, homeLog: [], awayLog: [], status: 'upcoming'
-        };
-        renderLiveMatchCard();
-        dom.liveMatchCard.hidden = false;
-        dom.upcomingMatchesContainer.hidden = true;
-    }
-
-    function handleLiveMatchActions(e) {
-        const target = e.target.closest('button[data-action], button[data-player]');
-        if (!target) return;
-        const { action, player, team } = target.dataset;
-        if (player) addGoal(team, player);
-        else if (action) {
-            const actions = {
-                play: () => { if (state.liveMatch.status !== 'live') { state.liveMatch.status = 'live'; state.liveMatch.timerInterval = setInterval(timerTick, 1000); }},
-                pause: () => { if (state.liveMatch.status === 'live') { state.liveMatch.status = 'paused'; clearInterval(state.liveMatch.timerInterval); }},
-                reset: () => { clearInterval(state.liveMatch.timerInterval); startLiveMatch(state.liveMatch.id); },
-                finish: finishMatch,
-                'remove-goal': () => removeLastGoal(team),
-                forfeit: () => forfeitMatch(team)
-            };
-            actions[action]?.();
-            renderLiveMatchCard();
-        }
-    }
-
-    function timerTick() {
-        state.liveMatch.remainingTime = Math.max(0, state.liveMatch.remainingTime - 1);
-        document.querySelector('.live-timer').textContent = formatTime(state.liveMatch.remainingTime);
-        if (state.liveMatch.remainingTime === 0) finishMatch();
-    }
-    
-    function addGoal(side, player) {
-        const minute = Math.floor((state.settings.matchDuration * 60 - state.liveMatch.remainingTime) / 60);
-        const log = { name: player, minute };
-        if (side === 'home') { state.liveMatch.homeScore++; state.liveMatch.homeLog.push(log); } 
-        else { state.liveMatch.awayScore++; state.liveMatch.awayLog.push(log); }
-        renderLiveMatchCard();
-    }
-    
-    function removeLastGoal(side) {
-        if (side === 'home' && state.liveMatch.homeScore > 0) { state.liveMatch.homeScore--; state.liveMatch.homeLog.pop(); } 
-        else if (side === 'away' && state.liveMatch.awayScore > 0) { state.liveMatch.awayScore--; state.liveMatch.awayLog.pop(); }
-        renderLiveMatchCard();
-    }
-
-    function finishMatch(forfeitData = null) {
-        clearInterval(state.liveMatch.timerInterval);
-        const match = findMatchById(state.liveMatch.id);
-        state.results[match.id] = {
-            id: match.id, type: match.type, round: match.round, homeId: match.homeId, awayId: match.awayId,
-            homeGoals: forfeitData ? forfeitData.homeScore : state.liveMatch.homeScore,
-            awayGoals: forfeitData ? forfeitData.awayScore : state.liveMatch.awayScore,
-            aLog: state.liveMatch.homeLog, bLog: state.liveMatch.awayLog, forfeit: forfeitData?.forfeitingTeam || null
-        };
-        state.liveMatch.id = null;
-        saveState();
-        renderAll();
-        showTab('finished');
-        handleNavigation({ target: document.querySelector('.main-nav .pill[data-tab="finished"]') }, 'tab', showTab);
-    }
-    
-    function forfeitMatch(side) { finishMatch({ forfeitingTeam: side, homeScore: side === 'home' ? 0 : state.settings.forfeitScore, awayScore: side === 'away' ? 0 : state.settings.forfeitScore }); }
-
-    function saveSettings() {
-        state.settings.points = { win: parseInt(document.getElementById('points-win').value), draw: parseInt(document.getElementById('points-draw').value), loss: parseInt(document.getElementById('points-loss').value) };
-        state.settings.bonus = { enabled: document.getElementById('bonus-enabled').value === 'true', boThreshold: parseInt(document.getElementById('bo-threshold').value), bdThreshold: parseInt(document.getElementById('bd-threshold').value) };
-        state.settings.matchDuration = parseInt(document.getElementById('match-duration').value);
-        state.settings.forfeitScore = parseInt(document.getElementById('forfeit-score').value);
-        saveState();
-        renderAll();
-        alert('Règles sauvegardées !');
-    }
-    
-    function updateAdminForm() {
-        document.getElementById('points-win').value = state.settings.points.win;
-        document.getElementById('points-draw').value = state.settings.points.draw;
-        document.getElementById('points-loss').value = state.settings.points.loss;
-        document.getElementById('bonus-enabled').value = state.settings.bonus.enabled;
-        document.getElementById('bo-threshold').value = state.settings.bonus.boThreshold;
-        document.getElementById('bd-threshold').value = state.settings.bonus.bdThreshold;
-        document.getElementById('match-duration').value = state.settings.matchDuration;
-        document.getElementById('forfeit-score').value = state.settings.forfeitScore;
-    }
-    
-    function resetApplication() {
-        if (confirm("Réinitialiser tout le tournoi ? Cette action est irréversible.")) {
-            localStorage.removeItem(API.STORAGE_KEY);
-            window.location.reload();
-        }
-    }
-
-    const getTeam = id => state.teams.find(t => t.id === id);
-    const findMatchById = id => [...state.schedule, ...state.knockout].find(m => m.id === id);
-    const formatTime = s => `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
-
-    init();
-});
+  ],
+  "rules": {
+    "points": { "win": 3, "draw": 1, "loss": 0 },
+    "bonus": {
+      "enabled": true,
+      "boPoints": 1,
+      "boThreshold": 3,
+      "bdPoints": 1,
+      "bdThreshold": 1
+    },
+    "matchDurationMin": 15
+  }
+}
