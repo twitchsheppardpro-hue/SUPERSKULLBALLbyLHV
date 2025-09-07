@@ -1,180 +1,244 @@
-/* ==================== VARIABLES & BASE ==================== */
-:root {
-    --bg-dark: #0C131B;
-    --panel: rgba(17, 24, 35, 0.95);
-    --ink: #EAF0FB;
-    --muted: #9CA9BB;
-    --accent: #F59E0B;
-    --pill: #1B2432;
-    --pill-border: #2A3647;
-    --pill-hover: #222E40;
-    --row-sep: #1E2A3A;
-    --danger: #EF4444;
-    --gold-1: #D3AD6B;
-    --gold-2: #B18753;
-    --silver-1: #C0C0C0;
-    --silver-2: #A9A9A9;
-    --bronze-1: #CD7F32;
-    --bronze-2: #B87333;
+/* ==================== LIVE & FINISHED MATCHES (V2 - CORRIGÉ) ==================== */
+.journee-header {
+    font-size: 1.2rem;
+    font-weight: 800;
+    margin: 40px 0 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--row-sep);
 }
 
-* { box-sizing: border-box; }
-html, body { height: 100%; }
-body {
-    margin: 0;
-    font-family: 'Inter', system-ui, sans-serif;
-    color: var(--ink);
-    background: linear-gradient(135deg, #002654 0%, #002654 30%, #ffffff 50%, #CE1126 80%, #CE1126 100%);
-    background-attachment: fixed;
+.game-card {
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--pill-border);
+    margin-bottom: 20px;
+    background-color: var(--bg-dark);
 }
-.container { max-width: 1400px; margin: 0 auto; padding: 0 20px; }
-.hidden { display: none !important; }
 
-/* ==================== HEADER ==================== */
-.head {
-    position: sticky; top: 0; z-index: 100;
-    padding: 18px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    background: linear-gradient(90deg, 
-        rgba(0,38,84,0.92) 0%, rgba(0,38,84,0.75) 30%, 
-        rgba(255,255,255,0.18) 50%, 
-        rgba(206,17,38,0.36) 80%, rgba(206,17,38,0.62) 100%);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+.game-card-main {
+    display: grid;
+    grid-template-columns: 1.5fr 280px 1.5fr; /* Colonnes: Equipe | Centre | Equipe */
+    align-items: stretch;
+    position: relative;
 }
-.head-grid { display: grid; grid-template-columns: auto 1fr auto; gap: 24px; align-items: center; }
-.event { display: flex; align-items: center; gap: 16px; }
-.event-logo {
-    width: 80px; height: 80px; border-radius: 14px; object-fit: contain;
-    background: rgba(11, 18, 28, 0.5); border: 1px solid rgba(255, 255, 255, 0.15);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+
+/* Effet visuel V8.20 : Fond dégradé + logo en filigrane */
+.team-bg-gradient {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
 }
-h1.title { margin: 0; font-weight: 800; font-size: 28px; text-shadow: 0 2px 8px rgba(0,0,0,0.4); }
-.nav { display: flex; justify-content: center; gap: 14px; }
-.pill {
-    height: 44px; display: inline-flex; align-items: center; gap: 10px;
-    padding: 0 20px; border-radius: 14px;
+.team-bg-logo {
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 50%;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 60% auto;
+    opacity: 0.06;
+    filter: grayscale(100%);
+    z-index: 1;
+}
+.team-bg-logo.left { left: 0; background-position: left 20% center; }
+.team-bg-logo.right { right: 0; background-position: right 20% center; }
+
+
+/* Sections Equipe (Gauche & Droite) */
+.game-team {
+    padding: 20px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    position: relative;
+    z-index: 2;
+}
+.team-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+.team-b .team-info {
+    flex-direction: row-reverse;
+}
+.team-info .logo {
+    width: 72px; height: 72px;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.team-info .name {
+    font-size: 24px;
+    font-weight: 900;
+}
+.scorers-log {
+    font-size: 14px;
+    color: var(--muted);
+    min-height: 48px; /* Espace pour 2-3 buteurs */
+    background: rgba(0,0,0,0.2);
+    border-radius: 8px;
+    padding: 8px 12px;
+}
+.scorers-log span {
+    display: block;
+    margin-bottom: 4px;
+}
+
+/* Grille des boutons joueurs */
+.player-buttons {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+.player-btn {
     background: var(--pill);
     border: 1px solid var(--pill-border);
-    color: var(--ink); font-weight: 700; cursor: pointer; user-select: none;
-    transition: all 0.15s ease;
-}
-.pill:hover { background: var(--pill-hover); transform: translateY(-2px); }
-.pill.active { background: var(--accent); color: #2A1800; border-color: transparent; }
-.admin { justify-self: end; }
-
-/* ==================== MAIN CONTENT & PANELS ==================== */
-main { padding: 24px 0 64px; }
-.panel {
-    background: var(--panel);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 18px;
-    padding: 24px;
-    box-shadow: 0 12px 35px rgba(0,0,0,0.4);
-}
-
-/* ==================== SUB-NAVIGATION (Classement) ==================== */
-.subnav { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid var(--row-sep); padding-bottom: 20px;}
-.subnav .pill { height: 38px; padding: 0 16px; border-radius: 12px; background: #0F1723; border-color: #233046; }
-.subnav .pill.active { background: var(--ink); color: var(--bg-dark); }
-
-/* ==================== TABLES (Classement, Buteurs) ==================== */
-.table { width: 100%; border-collapse: collapse; }
-.table thead th {
-    font-size: 14px; text-align: left; padding: 12px 10px; color: var(--muted);
-    border-bottom: 2px solid var(--row-sep); text-transform: uppercase;
-}
-.table tbody td { padding: 14px 10px; border-bottom: 1px solid var(--row-sep); font-size: 16px; }
-.table .pos { width: 40px; font-weight: 800; text-align: center; }
-.team { display: flex; align-items: center; gap: 14px; font-weight: 700; }
-.logo { width: 48px; height: 48px; border-radius: 12px; object-fit: contain; }
-.scorers-club-logo { width: 36px; height: 36px; border-radius: 8px; object-fit: contain; }
-/* Podium colors for Scorers table */
-#view-buteurs tbody tr:nth-child(1) { background: linear-gradient(90deg, rgba(211, 173, 107, 0.15), transparent); }
-#view-buteurs tbody tr:nth-child(2) { background: linear-gradient(90deg, rgba(192, 192, 192, 0.15), transparent); }
-#view-buteurs tbody tr:nth-child(3) { background: linear-gradient(90deg, rgba(205, 127, 50, 0.15), transparent); }
-
-/* ==================== PHASE FINALE / BRACKET ==================== */
-.bracket-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-.bracket-column h3 { margin: 0 0 12px; text-align: center; }
-.bracket-match { background: #0F1928; border: 1px solid var(--pill-border); border-radius: 12px; margin-bottom: 12px; }
-.bracket-team { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; padding: 12px; }
-.bracket-team + .bracket-team { border-top: 1px solid var(--row-sep); }
-.bracket-team .logo { width: 28px; height: 28px; border-radius: 6px; }
-.bracket-team-name { font-weight: 600; }
-.bracket-team-score { font-weight: 900; font-size: 18px; }
-.bracket-team.winner { background: linear-gradient(90deg, rgba(245, 158, 11, 0.2), rgba(245, 158, 11, 0.05)); }
-
-/* ==================== LIVE & FINISHED MATCHES ==================== */
-.journee-header { font-size: 1.2rem; font-weight: 800; margin: 30px 0 15px; padding-bottom: 10px; border-bottom: 1px solid var(--row-sep); }
-.game-card {
-    background: var(--bg-dark); border: 1px solid var(--pill-border); border-radius: 16px;
-    overflow: hidden; margin-bottom: 16px;
-}
-.game-card-main { display: grid; grid-template-columns: 1fr auto 1fr; align-items: stretch; }
-
-/* Team Sections (Left/Right) */
-.game-team { padding: 20px; position: relative; }
-.game-team.team-a { text-align: left; }
-.game-team.team-b { text-align: right; }
-.team-header { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; }
-.team-b .team-header { flex-direction: row-reverse; }
-.team-header .logo { width: 64px; height: 64px; border-radius: 12px; }
-.team-header .name { font-size: 24px; font-weight: 900; }
-
-.scorers-log { font-size: 14px; color: var(--muted); min-height: 40px;}
-.scorers-log span { display: block; margin-bottom: 4px; }
-
-.player-buttons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 8px; }
-.player-btn { background: var(--pill); border: 1px solid var(--pill-border); color: var(--ink); padding: 10px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.15s; }
-.player-btn:hover { background: var(--pill-hover); }
-.team-actions { display: flex; gap: 8px; }
-.team-b .team-actions { justify-content: flex-end; }
-.action-btn { background: #2c1818; border: 1px solid rgba(239, 68, 68, 0.5); color: var(--ink); flex-grow: 1; padding: 8px; border-radius: 8px; cursor: pointer; transition: background 0.15s; }
-.action-btn.minus:hover { background: #4b2a2a; }
-.action-btn.forfeit { background: var(--danger); border-color: var(--danger); }
-
-/* Center Section (Score, Timer) */
-.game-center {
-    display: flex; flex-direction: column; justify-content: center; align-items: center;
-    padding: 20px; background: rgba(0,0,0,0.15);
-    border-left: 1px solid var(--row-sep); border-right: 1px solid var(--row-sep);
+    color: var(--ink);
+    padding: 12px 8px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
     text-align: center;
-    min-width: 280px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
-.game-status { font-size: 12px; font-weight: 700; text-transform: uppercase; background: var(--pill); padding: 4px 10px; border-radius: 99px; margin-bottom: 10px; }
-.game-status.live { background: #22c55e; color: #fff; }
-.game-score { font-size: 5rem; font-weight: 900; line-height: 1; }
-.game-timer { font-size: 2rem; font-weight: 700; margin-top: 10px; }
-.center-controls { display: flex; gap: 10px; margin-top: 15px; }
-.control-btn { background: var(--pill); border: 1px solid var(--pill-border); border-radius: 50%; width: 40px; height: 40px; cursor: pointer; color: var(--ink); display: flex; align-items: center; justify-content: center; font-size: 20px;}
-.finish-btn { background: var(--accent); color: var(--bg-dark); border: none; border-radius: 8px; padding: 8px 16px; margin-top: 10px; font-weight: 700; cursor: pointer; }
+.player-btn:hover {
+    background: var(--pill-hover);
+    transform: translateY(-2px);
+}
+.player-btn.hidden {
+    visibility: hidden;
+}
 
-/* Finished Matches */
+/* Boutons d'action - et Forfait */
+.team-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: auto; /* Pousse les boutons en bas */
+}
+.action-btn {
+    flex: 1;
+    padding: 10px;
+    border-radius: 10px;
+    font-weight: 900;
+    font-size: 16px;
+    cursor: pointer;
+    border: 1px solid var(--pill-border);
+    transition: background 0.15s;
+}
+.action-btn.minus {
+    background: #372323;
+    color: #ffc2c2;
+    border-color: var(--danger);
+}
+.action-btn.minus:hover { background: #4d2d2d; }
+.action-btn.forfeit {
+    background: var(--danger);
+    color: var(--ink);
+}
+.action-btn.forfeit:hover { background: #d93b3b; }
+
+
+/* Section Centrale (Score, Chrono, Contrôles) */
+.game-center {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+    border-left: 1px solid var(--row-sep);
+    border-right: 1px solid var(--row-sep);
+    text-align: center;
+    padding: 16px;
+    z-index: 2;
+}
+.game-day {
+    font-size: 12px;
+    font-weight: 700;
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.04);
+}
+.game-status {
+    font-size: 11px;
+    font-weight: 800;
+    padding: 6px 10px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    color: #fff;
+    margin-top: 8px;
+    background: #3b82f6; /* Bleu pour "EN DIRECT" */
+}
+.game-score {
+    font-size: 64px;
+    font-weight: 900;
+    line-height: 1;
+    margin: 10px 0;
+}
+.game-timer {
+    font-size: 28px;
+    font-weight: 800;
+    margin-bottom: 12px;
+}
+.center-controls {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+.control-btn {
+    background: var(--pill);
+    border: 1px solid var(--pill-border);
+    border-radius: 10px;
+    width: 44px;
+    height: 44px;
+    cursor: pointer;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+.finish-btn {
+    background: var(--pill-hover);
+    color: var(--ink);
+    border: 1px solid var(--pill-border);
+    border-radius: 10px;
+    padding: 10px 18px;
+    font-weight: 700;
+    cursor: pointer;
+    width: 100%;
+}
+
+/* Styles pour les matchs terminés */
 .filterbar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
 .filterbar .chip { padding: 8px 14px; border-radius: 99px; border: 1px solid var(--pill-border); background: var(--pill); cursor: pointer; font-weight: 600; }
 .filterbar .chip.active { background: var(--ink); color: var(--bg-dark); border-color: var(--ink); }
-#finished-list .list { display: flex; flex-direction: column; gap: 10px; }
-.finished-card { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 16px; background: var(--bg-dark); padding: 12px 20px; border-radius: 12px; border: 1px solid var(--row-sep); }
-.finished-card .team { font-size: 1.1rem; }
-.finished-card .score { font-size: 1.5rem; font-weight: 900; }
-.finished-card .scorers-log { text-align: center; grid-column: 1 / -1; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--row-sep); font-size: 0.9em; color: var(--muted); }
-.finished-card .revert-btn { grid-column: 1 / -1; justify-self: center; background: transparent; border: 1px solid var(--muted); color: var(--muted); border-radius: 8px; padding: 6px 10px; cursor: pointer; margin-top: 10px; }
-
-/* ==================== ADMIN ==================== */
-.admin-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px; }
-.admin-block { background: rgba(0,0,0,0.1); padding: 20px; border-radius: 12px; }
-.admin-title { margin: 0 0 20px; }
-.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.form-group { display: flex; flex-direction: column; }
-.form-group label { font-size: 14px; color: var(--muted); margin-bottom: 6px; }
-.form-group input, .form-group select {
-    background: var(--pill); border: 1px solid var(--pill-border); color: var(--ink);
-    padding: 10px; border-radius: 8px; font: inherit;
+#finished-list { display: flex; flex-direction: column; gap: 10px; }
+.finished-card {
+    display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 16px;
+    background: var(--bg-dark); padding: 16px 24px; border-radius: 14px;
+    border: 1px solid var(--row-sep);
 }
-.form-group.full-width { grid-column: 1 / -1; }
-.admin-btn {
-    background: var(--accent); color: var(--bg-dark); border: none; border-radius: 8px;
-    padding: 12px 18px; font-weight: 700; cursor: pointer; margin-top: 10px;
+.finished-card .team { font-size: 1.2rem; font-weight: 700; display: flex; align-items: center; gap: 12px; }
+.finished-card .team .logo { width: 40px; height: 40px; border-radius: 10px; }
+.finished-card .score { font-size: 1.8rem; font-weight: 900; }
+.finished-card .team.team-b { justify-content: flex-end; }
+.finished-card .details {
+    grid-column: 1 / -1;
+    text-align: center;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--row-sep);
+    font-size: 0.9em; color: var(--muted);
 }
-.checkbox-group { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+.finished-card .revert-btn {
+    grid-column: 1 / -1; justify-self: center;
+    background: transparent; border: 1px solid var(--muted);
+    color: var(--muted); border-radius: 8px; padding: 6px 12px;
+    cursor: pointer; margin-top: 10px; font-weight: 600;
+}
+.finished-card .revert-btn:hover { background: var(--pill); color: var(--ink); }
