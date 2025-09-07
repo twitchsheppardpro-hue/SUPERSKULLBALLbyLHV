@@ -16,6 +16,10 @@
     --danger: #EF4444;
     --shadow: 0 8px 24px rgba(0,0,0,.35);
     --radius: 18px;
+    --card-dark-bg: #111823;
+    --card-center-bg: #0C131B;
+    --btn-dark: #22283a;
+    --btn-dark-border: #31384c;
 }
 
 /* --- THEME V8.20 --- */
@@ -56,6 +60,7 @@ h1.title { margin: 0; font-weight: 800; font-size: 28px; letter-spacing: .2px; t
 
 /* --- MAIN & PANELS --- */
 main { padding: 22px 0 64px; }
+#tab-live { background: none; border: none; padding: 0; box-shadow: none; }
 .panel {
     background: linear-gradient(180deg, rgba(10, 14, 20, .96), rgba(10, 14, 20, .94)) padding-box;
     border: 1px solid rgba(255, 255, 255, .10);
@@ -77,7 +82,6 @@ main { padding: 22px 0 64px; }
 .team-cell { display: flex; align-items: center; gap: 16px; font-weight: 800; }
 .team-cell .logo { width: 40px; height: 40px; border-radius: 10px; object-fit: contain; background: #0e111a; border: 1px solid #30384b; }
 .table .pts { font-weight: 900; }
-/* Standings tier colors (V8.20) */
 #standings-table tbody tr.rank-1-2 td { background-color: rgba(181, 143, 80, 0.80) !important; }
 #standings-table tbody tr.rank-3-6 td { background-color: rgba(152, 121, 75, 0.80) !important; }
 
@@ -101,85 +105,89 @@ main { padding: 22px 0 64px; }
 .teamline.winner { background: linear-gradient(90deg, var(--gold1), var(--gold2)); color: #1a1105; }
 .teamline.placeholder { opacity: .6; }
 
-/* --- MATCHS EN DIRECT & TERMINÉS --- */
-.live-list, .list { display: grid; gap: 18px; }
+/* --- LIVE & FINISHED: NEW DESIGN FROM MAQUETTE --- */
+.live-list { display: grid; gap: 24px; }
 .journee-title {
     margin: 18px 0 10px 0; padding: 10px 14px;
-    border: 1px dashed rgba(255, 255, 255, .1);
-    border-radius: 10px; opacity: .9; font-weight: 800;
+    border-radius: 10px; color: var(--ink); font-weight: 800;
 }
+
 .game-card {
-    background: #0E1520;
-    border: 1px solid rgba(255, 255, 255, .12);
-    border-radius: 20px;
-    box-shadow: 0 10px 32px rgba(0,0,0,.35);
-}
-.card-main {
+    background: var(--card-dark-bg);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
     display: grid;
-    grid-template-columns: 1fr 240px 1fr;
-    min-height: 200px;
-    position: relative;
-    overflow: hidden;
+    grid-template-columns: 1fr auto 1fr;
+    border: 1px solid var(--pill-border);
 }
+
 .card-team {
     padding: 20px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 16px;
 }
+.card-team.right { align-items: flex-end; }
+
 .team-header { display: flex; align-items: center; gap: 12px; }
-.team-header .logo { width: 48px; height: 48px; border-radius: 10px; border: 1px solid rgba(255,255,255,.1); }
-.team-header .name { font-size: 20px; font-weight: 900; }
-.card-team.right { align-items: flex-end; text-align: right; }
 .card-team.right .team-header { flex-direction: row-reverse; }
+.team-header .logo { width: 48px; height: 48px; border-radius: 10px; border: 1px solid rgba(255,255,255,.1); object-fit: contain; background-color: #000; }
+.team-name-info .name { font-size: 22px; font-weight: 900; }
+.team-name-info .scorers-line { font-size: 12px; color: var(--muted); margin-top: 4px; min-height: 1.2em; }
 
 .player-buttons {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 6px;
+    gap: 8px;
 }
 .player-btn {
-    background: #1B2432; border: 1px solid #2A3647;
-    color: var(--ink); font-weight: 600; font-size: 13px;
-    padding: 8px 10px; border-radius: 8px;
+    background: var(--btn-dark); border: 1px solid var(--btn-dark-border);
+    color: var(--ink); font-weight: 600; font-size: 14px;
+    padding: 10px; border-radius: 8px;
     cursor: pointer; text-align: center;
     transition: background .15s, transform .1s;
 }
-.player-btn:hover { background: #222E40; transform: translateY(-1px); }
+.player-btn:hover { background: var(--pill-hover); transform: translateY(-1px); }
 .player-btn:active { transform: translateY(0); }
-.player-btn.hidden { visibility: hidden; }
+.player-btn.hidden { visibility: hidden; pointer-events: none; }
 
-.team-controls { display: flex; gap: 8px; margin-top: auto; padding-top: 10px; }
-.team-btn { background: #222E40; padding: 8px 12px; border-radius: 8px; cursor: pointer; border: 1px solid #2A3647; font-weight: 700; color: var(--ink); }
-.team-btn.forfeit { background: var(--danger); }
-.card-team.right .team-controls { justify-content: flex-end; }
-.scorers-log { font-size: 12px; color: var(--muted); margin-top: 8px; min-height: 3em; }
+.team-controls { display: flex; gap: 8px; margin-top: auto; padding-top: 16px; }
+.card-team.right .team-controls { flex-direction: row-reverse; }
+.team-btn {
+    padding: 10px 14px; border-radius: 8px; cursor: pointer; border: none;
+    font-weight: 700; font-size: 14px;
+}
+.team-btn.undo { background-color: var(--btn-dark); border: 1px solid var(--btn-dark-border); color: var(--ink); }
+.team-btn.forfeit { background-color: var(--danger); color: white; }
 
 .card-center {
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    text-align: center;
-    background: linear-gradient(180deg, rgba(255, 255, 255, .04), rgba(255, 255, 255, .02));
-    border-left: 1px solid rgba(255, 255, 255, .06);
-    border-right: 1px solid rgba(255, 255, 255, .06);
+    background: var(--card-center-bg);
+    border-left: 1px solid var(--pill-border);
+    border-right: 1px solid var(--pill-border);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 20px 30px; text-align: center;
 }
-.card-center .meta-badge { font-size: 12px; padding: 6px 10px; border-radius: 999px; border: 1px solid #2b3347; background: rgba(255, 255, 255, .06); margin-bottom: 8px; }
-.card-center .score { font-size: 52px; font-weight: 900; letter-spacing: 1px; line-height: 1; margin: 8px 0; }
-.card-center .timer { display: inline-block; padding: 6px 12px; border-radius: 12px; border: 1px solid #2b3347; background: rgba(255, 255, 255, .06); font-size: 28px; font-weight: 900; margin-top: 6px; font-variant-numeric: tabular-nums; }
-.center-controls { display: flex; gap: 8px; margin-top: 12px; }
-.center-btn { background: #222E40; padding: 10px; border-radius: 50%; border: 1px solid #2A3647; cursor: pointer; line-height: 0; }
-.center-btn svg { width: 16px; height: 16px; stroke: var(--ink); }
+.card-center .meta-badge {
+    font-size: 12px; padding: 6px 10px; border-radius: 999px;
+    border: 1px solid var(--btn-dark-border); background: var(--btn-dark);
+    margin-bottom: 20px; font-weight: 700; text-transform: uppercase;
+}
+.card-center .score { font-size: 64px; font-weight: 900; letter-spacing: 2px; line-height: 1; margin: 8px 0; }
+.card-center .timer { font-size: 32px; font-weight: 800; margin-top: 6px; font-variant-numeric: tabular-nums; color: var(--muted); }
+.center-controls { display: flex; gap: 12px; margin: 24px 0; }
+.center-btn {
+    background: var(--btn-dark); border: 1px solid var(--btn-dark-border);
+    width: 36px; height: 36px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--ink);
+}
+.center-btn svg { width: 16px; height: 16px; }
 .finish-match-btn {
     background: var(--ok); color: #fff; font-weight: 700;
-    padding: 8px 14px; border-radius: 8px; margin-top: 10px;
-    border: none; cursor: pointer;
+    padding: 10px 20px; border-radius: 8px;
+    border: none; cursor: pointer; font-size: 14px;
 }
-.card-main .team-bg {
-    position: absolute; inset: 0;
-    background-size: cover; background-position: center;
-    opacity: 0.15; z-index: -1;
-}
-
-/* Match terminé card */
 .finished-card { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px; background: #0E1520; border: 1px solid rgba(255, 255, 255, .10); border-radius: 14px; padding: 10px 12px; }
 .sidecell { display: flex; align-items: center; gap: 10px; font-weight: 800; }
 .sidecell img { width: 32px; height: 32px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, .12); }
@@ -197,12 +205,12 @@ main { padding: 22px 0 64px; }
 .rules-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px; }
 .input, select { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #213049; background: #0F1C2B; color: var(--ink); font-weight: 600; box-sizing: border-box; }
 label { font-size: 13px; color: var(--muted); margin-bottom: 4px; display: block; }
-.btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 16px; border-radius: 12px; background: #1f2430; border: 1px solid #2b3344; color: var(--text); cursor: pointer; font-weight: 700; }
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 16px; border-radius: 12px; background: #1f2430; border: 1px solid #2b3344; color: var(--ink); cursor: pointer; font-weight: 700; }
 .btn.primary { background: var(--accent); border-color: var(--accent); color: #1a1105; font-weight: 900; }
 .match-gen-controls { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
 .checkbox-label { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 14px; }
 
 /* --- TOAST --- */
-#toast { position: fixed; right: 20px; bottom: -100px; background: var(--ok); color: white; padding: 12px 18px; border-radius: 10px; box-shadow: var(--shadow); transition: bottom .4s ease-in-out; font-weight: 700; }
+#toast { position: fixed; right: 20px; bottom: -100px; background: var(--ok); color: white; padding: 12px 18px; border-radius: 10px; box-shadow: var(--shadow); transition: bottom .4s ease-in-out; font-weight: 700; z-index: 1000; }
 #toast.show { bottom: 20px; }
 #toast.error { background: var(--danger); }
