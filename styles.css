@@ -130,8 +130,9 @@ main { padding: 24px 0 64px; }
 .player-btn:hover { background: var(--pill-hover); }
 .team-actions { display: flex; gap: 8px; }
 .team-b .team-actions { justify-content: flex-end; }
-.action-btn { background: #2c1818; border: 1px solid var(--danger); color: var(--ink); flex-grow: 1; padding: 8px; border-radius: 8px; cursor: pointer; }
-.action-btn.forfeit { background: var(--danger); }
+.action-btn { background: #2c1818; border: 1px solid rgba(239, 68, 68, 0.5); color: var(--ink); flex-grow: 1; padding: 8px; border-radius: 8px; cursor: pointer; transition: background 0.15s; }
+.action-btn.minus:hover { background: #4b2a2a; }
+.action-btn.forfeit { background: var(--danger); border-color: var(--danger); }
 
 /* Center Section (Score, Timer) */
 .game-center {
@@ -139,24 +140,26 @@ main { padding: 24px 0 64px; }
     padding: 20px; background: rgba(0,0,0,0.15);
     border-left: 1px solid var(--row-sep); border-right: 1px solid var(--row-sep);
     text-align: center;
+    min-width: 280px;
 }
 .game-status { font-size: 12px; font-weight: 700; text-transform: uppercase; background: var(--pill); padding: 4px 10px; border-radius: 99px; margin-bottom: 10px; }
-.game-status.live { background: #22c55e; color: #064e3b; }
+.game-status.live { background: #22c55e; color: #fff; }
 .game-score { font-size: 5rem; font-weight: 900; line-height: 1; }
 .game-timer { font-size: 2rem; font-weight: 700; margin-top: 10px; }
 .center-controls { display: flex; gap: 10px; margin-top: 15px; }
-.control-btn { background: var(--pill); border: 1px solid var(--pill-border); border-radius: 50%; width: 40px; height: 40px; cursor: pointer; color: var(--ink); }
+.control-btn { background: var(--pill); border: 1px solid var(--pill-border); border-radius: 50%; width: 40px; height: 40px; cursor: pointer; color: var(--ink); display: flex; align-items: center; justify-content: center; font-size: 20px;}
 .finish-btn { background: var(--accent); color: var(--bg-dark); border: none; border-radius: 8px; padding: 8px 16px; margin-top: 10px; font-weight: 700; cursor: pointer; }
 
 /* Finished Matches */
 .filterbar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
 .filterbar .chip { padding: 8px 14px; border-radius: 99px; border: 1px solid var(--pill-border); background: var(--pill); cursor: pointer; font-weight: 600; }
 .filterbar .chip.active { background: var(--ink); color: var(--bg-dark); border-color: var(--ink); }
-.finished-card { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 16px; background: var(--bg-dark); padding: 12px 20px; border-radius: 12px; border: 1px solid var(--row-sep); margin-bottom: 10px; }
+#finished-list .list { display: flex; flex-direction: column; gap: 10px; }
+.finished-card { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 16px; background: var(--bg-dark); padding: 12px 20px; border-radius: 12px; border: 1px solid var(--row-sep); }
 .finished-card .team { font-size: 1.1rem; }
 .finished-card .score { font-size: 1.5rem; font-weight: 900; }
-.finished-card .scorers-log { text-align: center; grid-column: 1 / -1; margin-top: 10px; }
-.finished-card .revert-btn { background: transparent; border: 1px solid var(--muted); color: var(--muted); border-radius: 8px; padding: 6px 10px; cursor: pointer; margin-top: 10px; }
+.finished-card .scorers-log { text-align: center; grid-column: 1 / -1; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--row-sep); font-size: 0.9em; color: var(--muted); }
+.finished-card .revert-btn { grid-column: 1 / -1; justify-self: center; background: transparent; border: 1px solid var(--muted); color: var(--muted); border-radius: 8px; padding: 6px 10px; cursor: pointer; margin-top: 10px; }
 
 /* ==================== ADMIN ==================== */
 .admin-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px; }
@@ -174,4 +177,4 @@ main { padding: 24px 0 64px; }
     background: var(--accent); color: var(--bg-dark); border: none; border-radius: 8px;
     padding: 12px 18px; font-weight: 700; cursor: pointer; margin-top: 10px;
 }
-.checkbox-group { display: flex; align-items: center; gap: 10px; }
+.checkbox-group { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
