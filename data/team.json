@@ -39,74 +39,11 @@
     },
     {
       "id": 6,
-      "name": "RC Vannes",
-      "logo": "logos/equipe6.png",
-      "color": "#202532",
-      "players": ["Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6"]
-    },
-    {
-      "id": 7,
       "name": "Les Grands Corsaires",
       "logo": "logos/equipe7.png",
       "color": "#202532",
       "players": ["Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6"]
     },
-    {
-      "id": 8,
-      "name": "Stade Toulousain",
-      "logo": "logos/equipe8.png",
-      "color": "#202532",
-      "players": ["Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6"]
-    },
-    {
-      "id": 9,
-      "name": "Stade Rochelais",
-      "logo": "logos/equipe9.png",
-      "color": "#202532",
-      "players": ["Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6"]
-    },
-    {
-      "id": 10,
-      "name": "Perpignan",
-      "logo": "logos/equipe10.png",
-      "color": "#202532",
-      "players": ["Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6"]
-    },
-    {
-      "id": 11,
-      "name": "Nevers",
-      "logo": "logos/equipe11.png",
-      "color": "#202532",
-      "players": ["Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6"]
-    },
-    {
-      "id": 12,
-      "name": "US Montauban",
-      "logo": "logos/equipe12.png",
-      "color": "#202532",
-      "players": ["Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6"]
-    },
-    {
-      "id": 13,
-      "name": "Union Bordeaux Bègles",
-      "logo": "logos/equipe13.png",
-      "color": "#202532",
-      "players": ["Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6"]
-    },
-    {
-      "id": 14,
-      "name": "UniBègles",
-      "logo": "logos/equipe13.png",
-      "color": "#202532",
-      "players": ["Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6"]
-    },
-    {
-      "id": 15,
-      "name": "Lyon OU",
-      "logo": "logos/equipe14.png",
-      "color": "#202532",
-      "players": ["Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6"]
-    }
   ]
 }
 
