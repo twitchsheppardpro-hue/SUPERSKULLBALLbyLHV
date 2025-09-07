@@ -3,111 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Skullball Manager</title>
+    <title>National League of Skullball</title>
+    <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+
+    <!-- ==================== HEADER ==================== -->
     <header class="head">
         <div class="container head-grid">
             <div class="event">
-                <img id="eventLogo" class="event-logo" alt="logo"/>
-                <h1 id="leagueTitle" class="title">Ligue Skullball</h1>
+                <img id="eventLogo" class="event-logo" alt="Logo de la ligue"/>
+                <h1 id="leagueTitle" class="title"></h1>
             </div>
             <nav id="mainNav" class="nav">
                 <button class="pill active" data-tab="classement">Classement</button>
                 <button class="pill" data-tab="live">Matchs en direct</button>
                 <button class="pill" data-tab="finished">Matchs terminés</button>
             </nav>
-            <button class="pill admin" data-tab="admin">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:8px"><path d="M12 17a2 2 0 0 0 2-2V9a2 2 0 1 0-4 0v6a2 2 0 0 0 2 2z"/><path d="M7 9V7a5 5 0 1 1 10 0v2"/><rect x="5" y="9" width="14" height="10" rx="2"/></svg>
+            <button id="adminBtn" class="pill admin" data-tab="admin">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:8px">
+                    <path d="M12 17a2 2 0 0 0 2-2V9a2 2 0 1 0-4 0v6a2 2 0 0 0 2 2z"/><path d="M7 9V7a5 5 0 1 1 10 0v2"/><rect x="5" y="9" width="14" height="10" rx="2"/>
+                </svg>
                 Admin
             </button>
         </div>
     </header>
 
+    <!-- ==================== MAIN CONTENT ==================== -->
     <main class="container">
-        <!-- CLASSEMENT & SOUS-PAGES -->
+        <!-- =========== CLASSEMENT View =========== -->
         <section id="tab-classement" class="panel">
-            <div class="subnav">
+            <nav class="subnav">
                 <button class="pill sub active" data-sub="tableau">Classement</button>
                 <button class="pill sub" data-sub="bracket">Phase finale</button>
                 <button class="pill sub" data-sub="buteurs">Buteurs</button>
-            </div>
+            </nav>
+            <div id="view-tableau"></div>
+            <div id="view-bracket" class="hidden"></div>
+            <div id="view-buteurs" class="hidden"></div>
+        </section>
 
-            <div id="view-tableau">
-                <div class="sub-caption">Tri : Points ▸ Différence de buts ▸ Confrontation directe.</div>
-                <table class="table" id="standings-table">
-                    <thead></thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-            
-            <div id="view-bracket" hidden>
-                 <div class="grid3" id="bracket-container">
-                    <!-- Contenu généré par JS -->
+        <!-- =========== LIVE Matches View =========== -->
+        <section id="tab-live" class="panel hidden">
+             <!-- This container will hold the live match cards -->
+        </section>
+
+        <!-- =========== FINISHED Matches View =========== -->
+        <section id="tab-finished" class="panel hidden">
+            <div class="filterbar" id="finishedFilter"></div>
+            <div id="finished-list" class="list"></div>
+        </section>
+        
+        <!-- =========== ADMIN View =========== -->
+        <section id="tab-admin" class="panel hidden">
+            <div class="admin-grid">
+                <div class="admin-block">
+                    <h3 class="admin-title">Règles & Options</h3>
+                    <div id="rules-options-form"></div>
                 </div>
-            </div>
-
-            <div id="view-buteurs" hidden>
-                <table class="table" id="scorers-table">
-                    <thead></thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-        </section>
-
-        <!-- MATCHS EN DIRECT -->
-        <section id="tab-live" hidden>
-            <div id="live-matches-list" class="live-list">
-                <!-- Match cards injected by JS -->
-            </div>
-        </section>
-
-        <!-- MATCHS TERMINÉS -->
-        <section id="tab-finished" class="panel" hidden>
-            <h2 class="section-title">Matchs terminés</h2>
-            <div class="filterbar" id="finished-filter"></div>
-            <div id="finished-matches-list" class="list"></div>
-        </section>
-
-        <!-- ADMIN -->
-        <section id="tab-admin" class="panel" hidden>
-            <div class="grid cols-2">
-                <div class="panel-v2">
-                    <h3 class="section-title">Règles & Options</h3>
-                    <div class="rules-grid">
-                        <div><label>Points victoire</label><input class="input" id="ptsWin" type="number" value="3"/></div>
-                        <div><label>Points nul</label><input class="input" id="ptsDraw" type="number" value="1"/></div>
-                        <div><label>Points défaite</label><input class="input" id="ptsLoss" type="number" value="0"/></div>
-                        <div><label>Activer bonus (BO/BD)</label>
-                            <select class="input" id="bonusEnabled">
-                                <option value="1">Oui</option><option value="0">Non</option>
-                            </select>
-                        </div>
-                        <div><label>BO (+ points)</label><input class="input" id="boPoints" type="number" value="1"/></div>
-                        <div><label>Seuil BO (écart ≥)</label><input class="input" id="boMargin" type="number" value="3"/></div>
-                        <div><label>BD (+ points)</label><input class="input" id="bdPoints" type="number" value="1"/></div>
-                        <div><label>Seuil BD (défaite, écart ≤)</label><input class="input" id="bdMargin" type="number" value="1"/></div>
-                        <div><label>Durée match (minutes)</label><input class="input" id="defaultDuration" type="number" value="15"/></div>
-                    </div>
-                    <button class="btn primary" id="saveRules">Sauvegarder règles</button>
-                </div>
-                <div class="panel-v2">
-                    <h3 class="section-title">Matchs</h3>
-                    <div class="match-gen-controls">
-                        <button class="btn" id="genRR">Générer les matchs</button>
-                        <label class="checkbox-label"><input id="homeAway" type="checkbox"/> Aller/Retour</label>
-                    </div>
-                    <button class="btn" id="genKO">Générer les phases finales</button>
+                <div class="admin-block">
+                    <h3 class="admin-title">Génération des Matchs</h3>
+                    <div id="matches-generation-form"></div>
                 </div>
             </div>
         </section>
     </main>
-
-    <div id="toast"></div>
 
     <script src="app.js"></script>
 </body>
