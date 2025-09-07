@@ -1,114 +1,294 @@
 <!DOCTYPE html>
+
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Skullball Manager</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Tournoi – Classement, Live, Terminés &amp; Phases finales (V7.4)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" href="styles.css"/>
+
 </head>
 <body>
-    <header class="head">
-        <div class="container head-grid">
-            <div class="event">
-                <img id="eventLogo" class="event-logo" alt="logo"/>
-                <h1 id="leagueTitle" class="title">Ligue Skullball</h1>
-            </div>
-            <nav id="mainNav" class="nav">
-                <button class="pill active" data-tab="classement">Classement</button>
-                <button class="pill" data-tab="live">Matchs en direct</button>
-                <button class="pill" data-tab="finished">Matchs terminés</button>
-            </nav>
-            <button class="pill admin" data-tab="admin">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:8px"><path d="M12 17a2 2 0 0 0 2-2V9a2 2 0 1 0-4 0v6a2 2 0 0 0 2 2z"/><path d="M7 9V7a5 5 0 1 1 10 0v2"/><rect x="5" y="9" width="14" height="10" rx="2"/></svg>
-                Admin
-            </button>
-        </div>
-    </header>
+<header>
+<div class="wrap tabs" role="tablist">
+<button aria-selected="true" class="tab" data-tab="standings" role="tab">Classement</button>
+<button aria-selected="false" class="tab" data-tab="live" role="tab">Matchs en direct</button>
+<button aria-selected="false" class="tab" data-tab="finished" role="tab">Matchs terminés</button>
+<button aria-selected="false" class="tab" data-tab="knockout" role="tab">Phase finale</button>
+<button aria-selected="false" class="tab" data-tab="admin" role="tab">Gestion</button>
+<div class="grow"></div>
+<span class="public-badge hide" id="publicBadge">Mode public (lecture seule)</span>
+</div>
+</header>
+<main class="wrap" style="padding-top:16px">
+<section class="grid" id="tab-standings">
+<div class="panel">
+<div class="league-head" id="leagueHead">
+<img alt="league" class="logo" id="leagueLogo" src=""/>
+<div class="name" id="leagueName">Ma Ligue</div>
+</div>
+<h2 class="section-title">Classement</h2>
+<div class="sub"><span id="rankSubtitle"></span></div>
+<div id="standingsWrap" style="margin-top:12px"></div>
+</div>
+</section>
+<section class="grid hide" id="tab-live">
+<div class="panel">
+<h2 class="section-title">Matchs en direct</h2>
+<div class="sub"></div>
+<div class="live-list" id="liveBanners"></div>
+</div>
+</section>
+<section class="grid hide" id="tab-finished">
+<div class="panel">
+<h2 class="section-title">Matchs terminés</h2>
+<div class="filterbar" id="finishedFilter"></div>
+<div class="live-list" id="finishedList"></div>
+</div>
+</section>
+<section class="grid hide" id="tab-knockout">
+<div class="panel">
+<h2 class="section-title">Phase finale</h2>
+<div class="sub"></div>
+<div class="bracket" id="bracket"></div>
+</div>
+</section>
+<section class="grid cols-2 hide" id="tab-admin">
+<div class="panel">
+<h3 class="section-title">Paramètres de ligue</h3>
+<form class="form" id="leagueForm">
+<div><label>Nom de la ligue</label><input class="input" name="leagueName" placeholder="ex. LHV League"/></div>
+<div><label>Logo – URL</label><input class="input" name="leagueLogoUrl" placeholder="https://…png"/></div>
+<div><label>Mode public (lecture seule)</label>
+<select class="input" name="publicMode"><option value="0">Non</option><option value="1">Oui</option></select>
+</div>
+<div><label>Thème</label>
+<select class="input" id="themePreset" name="themePreset">
+<option value="europa">Europa League</option>
+<option value="ucl">Ligue des Champions</option>
+<option value="custom">Personnalisé</option>
+</select>
+</div>
+<div class="grid cols-3">
+<div><label>Couleur accent</label><input class="input" name="accentColor" type="color" value="#ff5f00"/></div>
+<div><label>Fond (haut)</label><input class="input" name="bg1" type="color" value="#0b0c10"/></div>
+<div><label>Fond (bas)</label><input class="input" name="bg2" type="color" value="#151824"/></div>
+</div>
+<div class="grid cols-3">
+<div>
+<label>Appliquer palette du thème</label><button class="btn" id="applyPalette" type="button">Appliquer</button>
+<div class="note">Remplit accent/bg avec les couleurs par défaut du thème sélectionné.</div>
+</div>
+</div>
+<div class="grid cols-3">
+  <div>
+    <label>Import/Export JSON</label>
+    <div class="btn-row-nowrap" style="display:flex; gap:8px; flex-wrap:nowrap; align-items:center; white-space:nowrap">
+      <button class="btn" id="exportBtn" type="button">Exporter JSON</button>
+      <label class="btn ghost">Importer JSON
+        <input accept="application/json" hidden id="importFile" type="file"/>
+      </label>
+    </div>
+    <div class="note">Sauvegarde/restaure l'état (équipes, matchs, paramètres) depuis un fichier.</div>
+  </div>
+</div>
+<div style="display:flex;gap:8px;align-items:center">
+<button class="btn" id="resetData" type="button">Réinitialiser données</button>
+</div>
+<div style="align-self:end;margin-top:8px"><button class="btn primary">Sauvegarder</button></div></form>
+<div class="note" id="storageNote">Stockage utilisé : —</div>
+</div>
+<div class="panel">
+<h3 class="section-title">Règles &amp; Options</h3>
+<div class="grid cols-3">
+<div><label>Points victoire</label><input class="input" id="ptsWin" max="9" min="1" type="number" value="3"/></div>
+<div><label>Points nul</label><input class="input" id="ptsDraw" max="9" min="0" type="number" value="1"/></div>
+<div><label>Points défaite</label><input class="input" id="ptsLoss" max="9" min="0" type="number" value="0"/></div>
+<div><label>BO (+ points)</label><input class="input" id="boPoints" max="3" min="0" type="number" value="1"/></div>
+<div><label>Seuil BO (écart ≥)</label><input class="input" id="boMargin" max="50" min="1" type="number" value="3"/></div>
+<div><label>BD (+ points)</label><input class="input" id="bdPoints" max="3" min="0" type="number" value="1"/></div>
+<div><label>Seuil BD (écart ≤ en cas de défaite)</label><input class="input" id="bdMargin" max="50" min="0" type="number" value="1"/></div>
+<div><label>Activer bonus (BO/BD)</label>
+<select class="input" id="bonusEnabled">
+<option value="1">Oui</option>
+<option value="0">Non</option>
+</select>
+</div>
+<div><label>Durée match (minutes)</label><input class="input" id="defaultDuration" max="180" min="1" type="number" value="15"/></div>
+</div>
+<div style="margin-top:10px"><button class="btn" id="saveRules">Sauvegarder règles</button></div>
+</div>
+<div class="panel">
+<h3 class="section-title">Équipes (max 14)</h3>
+<form autocomplete="off" class="form" id="teamForm">
+<div><label>Nom d'équipe</label><input class="input" name="name" placeholder="ex. LHV" required=""/></div>
+<div><label>Couleur (fond)</label><input class="input" name="color" type="color" value="#202532"/></div>
+<div><label>Logo – URL</label><input class="input" name="logoUrl" placeholder="https://…png"/></div>
+<div><label>Logo – Fichier (compressé 96×96)</label><input accept="image/*" class="input" name="logoFile" type="file"/><div class="note">PNG garde la transparence. JPEG allège mais remplit le fond.</div></div>
+<div style="align-self:end;display:flex;gap:8px;">
+<button class="btn primary" type="submit">Ajouter/Mettre à jour</button>
+<button class="btn" id="resetTeamForm" type="button">Nouveau</button>
+</div>
+<input name="editId" type="hidden"/>
+</form>
+<div style="height:12px"></div>
+<div class="list" id="teamsList"></div>
+</div>
 
-    <main class="container">
-        <!-- CLASSEMENT & SOUS-PAGES -->
-        <section id="tab-classement" class="panel">
-            <div class="subnav">
-                <button class="pill sub active" data-sub="tableau">Classement</button>
-                <button class="pill sub" data-sub="bracket">Phase finale</button>
-                <button class="pill sub" data-sub="buteurs">Buteurs</button>
-            </div>
 
-            <div id="view-tableau">
-                <div class="sub-caption">Tri : Points ▸ Différence de buts ▸ Confrontation directe.</div>
-                <table class="table" id="standings-table">
-                    <thead></thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-            
-            <div id="view-bracket" hidden>
-                 <div class="grid3" id="bracket-container">
-                    <!-- Contenu généré par JS -->
-                </div>
-            </div>
+<div class="panel" id="playersPanel">
+  <h3 class="section-title">Joueurs</h3>
+  <form class="form" id="playerForm" autocomplete="off">
+    <div><label>Nom</label><input class="input" name="playerName" required placeholder="Nom du joueur"/></div>
+    <div><label>Équipe</label><select class="input" name="playerTeam" required></select></div>
+    <div style="align-self:end;display:flex;gap:8px;">
+      <button class="btn primary" type="submit">Ajouter / Mettre à jour</button>
+      <button class="btn" id="resetPlayerForm" type="button">Nouveau</button>
+    </div>
+    <input type="hidden" name="editId"/>
+  </form>
+  <div style="height:12px"></div>
+  <div style="margin-top:8px"><button class="btn" id="togglePlayersList" type="button">Masquer la liste</button></div>
+<div class="list" id="playersList"></div>
+</div>
+</div>
 
-            <div id="view-buteurs" hidden>
-                <table class="table" id="scorers-table">
-                    <thead></thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-        </section>
+<div class="panel">
+  <h3 class="section-title">Effectifs (lecture seule)</h3>
+  <div class="sub">Vue récap des joueurs enregistrés par équipe.</div>
+  <div class="roster-list" id="rosterList"></div>
+</div>
+<div class="panel">
+<h3 class="section-title">Matchs</h3>
+<div style="margin-top:0;display:flex;gap:8px;align-items:center">
+<button class="btn" id="genRR">Générer les matchs</button>
+<label class="btn ghost"><input id="homeAway" type="checkbox"/> Aller/Retour</label>
+<button class="btn" id="genKO">Générer les phases finales</button>
+</div>
+<form class="form" id="matchForm">
+<div><label>Équipe A</label><select class="input" name="teamA" required=""></select></div>
+<div><label>Équipe B</label><select class="input" name="teamB" required=""></select></div>
+<div><label>Journée</label><input class="input" min="1" name="matchday" type="number" value="1"/></div>
+<div><label>Durée match (min)</label><input class="input" id="durationInput" min="1" name="duration" type="number"/></div>
+<div style="align-self:end"><button class="btn primary" type="submit">Ajouter le match</button></div>
+</form>
+<div class="admin-hidden" style="height:12px"></div>
+<div class="list admin-hidden" id="matchesList"></div>
+</div>
+</section>
+</main>
+<div class="toast" id="toast">Lien public copié ✅</div>
 
-        <!-- MATCHS EN DIRECT -->
-        <section id="tab-live" hidden>
-            <div id="live-matches-list" class="live-list">
-                <!-- Match cards injected by JS -->
-            </div>
-        </section>
 
-        <!-- MATCHS TERMINÉS -->
-        <section id="tab-finished" class="panel" hidden>
-            <h2 class="section-title">Matchs terminés</h2>
-            <div class="filterbar" id="finished-filter"></div>
-            <div id="finished-matches-list" class="list"></div>
-        </section>
 
-        <!-- ADMIN -->
-        <section id="tab-admin" class="panel" hidden>
-            <div class="grid cols-2">
-                <div class="panel-v2">
-                    <h3 class="section-title">Règles & Options</h3>
-                    <div class="rules-grid">
-                        <div><label>Points victoire</label><input class="input" id="ptsWin" type="number" value="3"/></div>
-                        <div><label>Points nul</label><input class="input" id="ptsDraw" type="number" value="1"/></div>
-                        <div><label>Points défaite</label><input class="input" id="ptsLoss" type="number" value="0"/></div>
-                        <div><label>Activer bonus (BO/BD)</label>
-                            <select class="input" id="bonusEnabled">
-                                <option value="1">Oui</option><option value="0">Non</option>
-                            </select>
-                        </div>
-                        <div><label>BO (+ points)</label><input class="input" id="boPoints" type="number" value="1"/></div>
-                        <div><label>Seuil BO (écart ≥)</label><input class="input" id="boMargin" type="number" value="3"/></div>
-                        <div><label>BD (+ points)</label><input class="input" id="bdPoints" type="number" value="1"/></div>
-                        <div><label>Seuil BD (défaite, écart ≤)</label><input class="input" id="bdMargin" type="number" value="1"/></div>
-                        <div><label>Durée match (minutes)</label><input class="input" id="defaultDuration" type="number" value="15"/></div>
-                    </div>
-                    <button class="btn primary" id="saveRules">Sauvegarder règles</button>
-                </div>
-                <div class="panel-v2">
-                    <h3 class="section-title">Matchs</h3>
-                    <div class="match-gen-controls">
-                        <button class="btn" id="genRR">Générer les matchs</button>
-                        <label class="checkbox-label"><input id="homeAway" type="checkbox"/> Aller/Retour</label>
-                    </div>
-                    <button class="btn" id="genKO">Générer les phases finales</button>
-                </div>
-            </div>
-        </section>
-    </main>
 
-    <div id="toast"></div>
 
-    <script src="app.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- V3.59 — Couleurs Classement (toujours visible; désactivé en public) -->
+
+
+<div id="rankColorsCard">
+  <h3>Couleurs Classement</h3>
+  <div class="grid">
+    <div><label>Rangs 1–2</label><input type="color" id="rc12" value="#2e7d32"></div>
+    <div><label>Rangs 3–4</label><input type="color" id="rc34" value="#e68c00"></div>
+    <div><label>Rangs 5–6</label><input type="color" id="rc56" value="#e68c00"></div>
+    <div><label>Opacité (%)</label><input type="range" id="rcOp" min="0" max="40" value="18"></div>
+    <div><label><input type="checkbox" id="rcGrad" checked> Dégradé</label></div>
+  </div>
+  <div class="actions">
+    <button id="rcReset">Réinitialiser</button>
+    <button id="rcSave" class="primary">Sauvegarder</button>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script src="app.js"></script>
+
 </body>
 </html>
