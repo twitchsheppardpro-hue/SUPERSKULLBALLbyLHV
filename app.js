@@ -20,8 +20,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // --- ELEMENTS ---
         elements: {
-            // Main navigation
-            mainNav: document.getElementById('mainNav'),
+            // Main navigation container (header)
+            header: document.querySelector('header.head'), // CHANGEMENT ICI
             tabs: document.querySelectorAll('main > section'),
             // Header
             leagueTitle: document.getElementById('leagueTitle'),
@@ -108,8 +108,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // --- EVENT LISTENERS ---
         setupEventListeners() {
-            this.elements.mainNav.addEventListener('click', e => {
-                if (e.target.matches('.pill')) this.setActiveTab(e.target.dataset.tab);
+            // CHANGEMENT ICI: On écoute sur le header entier
+            this.elements.header.addEventListener('click', e => {
+                const pill = e.target.closest('.pill');
+                if (pill && pill.dataset.tab) {
+                    this.setActiveTab(pill.dataset.tab);
+                }
             });
             this.elements.subnav.addEventListener('click', e => {
                 if (e.target.matches('.pill.sub')) this.setActiveSubTab(e.target.dataset.sub);
@@ -123,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setActiveTab(tabId) {
             this.state.ui.activeTab = tabId;
             this.elements.tabs.forEach(tab => tab.hidden = (tab.id !== `tab-${tabId}`));
-            this.elements.mainNav.querySelectorAll('.pill').forEach(pill => {
+            this.elements.header.querySelectorAll('.pill[data-tab]').forEach(pill => {
                 pill.classList.toggle('active', pill.dataset.tab === tabId);
             });
             this.saveState();
