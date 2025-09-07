@@ -1,5 +1,5 @@
 {
-  "leagueName": "National League of Skullball",
+  "leagueName": "National Skullball League",
   "eventLogo": "logos/logoevent.png",
   "teams": [
     {
@@ -18,21 +18,21 @@
     },
     {
       "id": 3,
-      "name": "Castres Olympique",
+      "name": "Dead Specter",
       "logo": "logos/equipe3.png",
       "color": "#202532",
       "players": ["Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6"]
     },
     {
       "id": 4,
-      "name": "Provence Rugby",
+      "name": "Sea Nerds",
       "logo": "logos/equipe4.png",
       "color": "#202532",
       "players": ["Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6"]
     },
     {
       "id": 5,
-      "name": "RC Toulon",
+      "name": "Golden Banana",
       "logo": "logos/equipe5.png",
       "color": "#202532",
       "players": ["Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6"]
@@ -46,7 +46,7 @@
     },
     {
       "id": 7,
-      "name": "Section Paloise",
+      "name": "Les Grands Corsaires",
       "logo": "logos/equipe7.png",
       "color": "#202532",
       "players": ["Joueur 1", "Joueur 2", "Joueur 3", "Joueur 4", "Joueur 5", "Joueur 6"]
